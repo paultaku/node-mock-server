@@ -1,0 +1,8 @@
+{
+  "header": [],
+  "body": {
+    "success": false,
+    "message": "No file uploaded",
+    "status": 400
+  }
+}

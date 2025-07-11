@@ -1,0 +1,8 @@
+{
+  "header": [],
+  "body": {
+    "success": false,
+    "message": "Invalid input",
+    "status": 400
+  }
+}

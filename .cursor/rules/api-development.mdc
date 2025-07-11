@@ -1,0 +1,60 @@
+# API 开发最佳实践
+
+## Swagger/OpenAPI 规范
+
+参考 [demo/swagger.yaml](mdc:demo/swagger.yaml) 作为标准模板：
+
+### 必需字段
+
+- `openapi` 版本
+- `info` 基本信息（title, version）
+- `paths` API 路径定义
+- `components` 可复用的 schema 定义
+
+### 响应定义
+
+为每个 API 端点定义完整的响应：
+
+- 成功响应（200, 201 等）
+- 错误响应（400, 404, 422 等）
+- 默认错误响应
+
+## Mock 数据生成策略
+
+基于 [src/mock-generator.ts](mdc:src/mock-generator.ts) 的实现：
+
+### 数据类型映射
+
+- `string` → 默认值或枚举第一个值
+- `integer/number` → 0
+- `boolean` → true
+- `object` → 递归生成属性
+- `array` → 包含一个元素的数组
+- `date-time` → ISO 8601 格式
+- `date` → YYYY-MM-DD 格式
+
+### 优先级规则
+
+1. `example` 字段（最高优先级）
+2. `enum` 第一个值
+3. 基于类型的默认值
+4. `null`（最低优先级）
+
+## 测试策略
+
+- 使用生成的 Mock 数据进行集成测试
+- 测试不同 HTTP 状态码的响应
+- 验证路径参数解析
+- 测试错误处理逻辑
+
+## 部署和配置
+
+- 默认端口：3000
+- Mock 根目录：`./mock`
+- 支持通过查询参数选择不同的 Mock 文件
+- 环境变量配置支持
+  description:
+  globs:
+  alwaysApply: false
+
+---

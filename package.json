@@ -1,0 +1,40 @@
+{
+  "name": "@paultaku/node-mock-server",
+  "version": "1.0.0",
+  "description": "A TypeScript-based mock server with automatic Swagger-based mock file generation",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "ts-node src/server.ts",
+    "generate": "ts-node src/cli/generate-mock.ts",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "dependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.0.12",
+    "commander": "^13.1.0",
+    "express": "^5.1.0",
+    "fs-extra": "^11.3.0",
+    "yaml": "^2.8.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/jest": "^29.5.12",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "keywords": [
+    "mock-server",
+    "swagger",
+    "openapi",
+    "typescript",
+    "express"
+  ],
+  "author": "paultaku",
+  "license": "MIT"
+}

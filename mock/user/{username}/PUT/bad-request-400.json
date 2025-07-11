@@ -1,0 +1,8 @@
+{
+  "header": [],
+  "body": {
+    "success": false,
+    "message": "bad request",
+    "status": 400
+  }
+}

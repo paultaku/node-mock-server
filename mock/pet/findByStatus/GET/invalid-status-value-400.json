@@ -1,0 +1,8 @@
+{
+  "header": [],
+  "body": {
+    "success": false,
+    "message": "Invalid status value",
+    "status": 400
+  }
+}

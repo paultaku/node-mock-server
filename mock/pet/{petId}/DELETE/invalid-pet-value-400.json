@@ -1,0 +1,8 @@
+{
+  "header": [],
+  "body": {
+    "success": false,
+    "message": "Invalid pet value",
+    "status": 400
+  }
+}

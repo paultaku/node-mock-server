@@ -1,0 +1,50 @@
+# 开发工作流程
+
+## 项目启动
+
+1. 安装依赖：`npm install`
+2. 启动 Mock 服务器：`ts-node src/server.ts`
+3. 服务器运行在：http://localhost:3000
+
+## Mock 数据生成流程
+
+1. 准备 Swagger YAML 文件（参考 [demo/swagger.yaml](mdc:demo/swagger.yaml)）
+2. 运行生成命令：
+   ```bash
+   ts-node src/cli/generate-mock.ts -s <swagger-file> -o mock/
+   ```
+3. 检查生成的 Mock 文件结构
+4. 启动服务器测试 API
+
+## 开发调试
+
+- 使用 `console.log` 进行调试
+- 检查 Mock 文件路径和内容
+- 验证路由匹配逻辑
+- 测试不同 HTTP 方法和状态码
+
+## 文件结构维护
+
+- Mock 文件按 API 路径组织
+- 每个端点支持多个响应文件
+- 使用描述性的文件名
+- 保持目录结构清晰
+
+## 常见问题解决
+
+- 路径参数不匹配：检查 `{paramName}` 格式
+- Mock 文件未找到：验证文件路径和命名
+- 类型错误：检查 Zod schema 定义
+- 服务器启动失败：检查端口占用
+
+## 扩展开发
+
+- 添加新的数据类型支持
+- 实现更复杂的路由匹配
+- 增加配置选项
+- 优化性能
+  description:
+  globs:
+  alwaysApply: false
+
+---

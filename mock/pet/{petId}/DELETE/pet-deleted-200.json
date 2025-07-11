@@ -1,0 +1,8 @@
+{
+  "header": [],
+  "body": {
+    "success": true,
+    "message": "Pet deleted",
+    "status": 200
+  }
+}

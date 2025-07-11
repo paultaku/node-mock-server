@@ -1,0 +1,66 @@
+# Mock Server 开发模式
+
+## 路由匹配逻辑
+
+参考 [src/server.ts](mdc:src/server.ts) 中的路由匹配实现：
+
+### 路径参数处理
+
+- 使用 `{paramName}` 格式定义路径参数
+- 支持动态参数匹配和提取
+- 路径参数只允许字母、数字、连字符和下划线
+
+### Mock 文件命名约定
+
+- 格式：`{description}-{statusCode}.json`
+- 示例：`successful-operation-200.json`, `pet-not-found-404.json`
+- 默认文件：`success-200.json`
+
+## Mock 数据结构
+
+每个 Mock 文件应包含：
+
+```json
+{
+  "header": [{ "key": "Content-Type", "value": "application/json" }],
+  "body": {
+    /* 响应数据 */
+  }
+}
+```
+
+## Mock 生成器模式
+
+参考 [src/mock-generator.ts](mdc:src/mock-generator.ts)：
+
+### Schema 解析
+
+- 优先使用 `example` 字段
+- 递归处理 `$ref` 引用
+- 根据数据类型生成合适的 Mock 值
+
+### 文件组织
+
+- 按 API 路径创建目录结构
+- 每个 HTTP 方法一个子目录
+- 支持嵌套路径参数
+
+## CLI 工具使用
+
+参考 [src/cli/generate-mock.ts](mdc:src/cli/generate-mock.ts)：
+
+```bash
+ts-node src/cli/generate-mock.ts -s demo/swagger.yaml -o mock/
+```
+
+## 扩展建议
+
+- 支持查询参数匹配
+- 添加请求体验证
+- 实现 Mock 数据模板化
+- 支持环境变量配置
+  description:
+  globs:
+  alwaysApply: false
+
+---

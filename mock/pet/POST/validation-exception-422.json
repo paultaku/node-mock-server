@@ -1,0 +1,8 @@
+{
+  "header": [],
+  "body": {
+    "success": false,
+    "message": "Validation exception",
+    "status": 422
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "header": [],
+  "body": {
+    "success": false,
+    "message": "Pet not found",
+    "status": 404
+  }
+}

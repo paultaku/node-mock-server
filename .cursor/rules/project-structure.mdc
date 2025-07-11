@@ -1,0 +1,41 @@
+# Node.js Mock Server 项目结构指南
+
+这是一个基于 Swagger/OpenAPI 规范的 Node.js Mock Server 项目，用于快速生成和提供 API 模拟数据。
+
+## 核心文件结构
+
+### 主要入口文件
+
+- [package.json](mdc:package.json) - 项目依赖和脚本配置
+- [src/server.ts](mdc:src/server.ts) - Express 服务器主文件，处理所有 API 请求
+- [src/mock-generator.ts](mdc:src/mock-generator.ts) - 从 Swagger 文件生成 Mock 数据的核心逻辑
+- [src/cli/generate-mock.ts](mdc:src/cli/generate-mock.ts) - CLI 工具入口，用于生成 Mock 文件
+
+### 类型定义
+
+- [src/types/swagger.ts](mdc:src/types/swagger.ts) - Swagger 文档的 Zod 类型定义
+
+### 示例和配置
+
+- [demo/swagger.yaml](mdc:demo/swagger.yaml) - 示例 Swagger 文件（Petstore API）
+- [mock/](mdc:mock/) - 生成的 Mock 数据目录，按 API 路径组织
+
+## 项目架构
+
+1. **Mock 生成器**: 解析 Swagger YAML 文件，根据 schema 定义自动生成 Mock 数据
+2. **Mock 服务器**: 基于文件系统的路由，支持路径参数和 HTTP 方法匹配
+3. **CLI 工具**: 提供命令行接口来生成 Mock 文件
+
+## 技术栈
+
+- TypeScript + Node.js
+- Express.js 作为 Web 服务器
+- Zod 用于类型验证
+- YAML 解析器
+- fs-extra 用于文件操作
+- Commander.js 用于 CLI 工具
+  description:
+  globs:
+  alwaysApply: false
+
+---

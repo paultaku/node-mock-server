@@ -1,0 +1,8 @@
+{
+  "header": [],
+  "body": {
+    "success": true,
+    "message": "User deleted",
+    "status": 200
+  }
+}
