@@ -29,20 +29,23 @@ async function getAllMockTemplates(): Promise<string[][]> {
 
     for (const entry of entries) {
       if (!isValidMockPart(entry)) continue; // 跳过非法命名
-
       const fullPath = path.join(dir, entry);
       const stat = await fs.stat(fullPath);
 
       if (stat.isDirectory()) {
+        // 判断该目录下是否有 json 文件（即方法目录）
+        const files = await fs.readdir(fullPath);
+        const jsonFiles = files.filter((f) => f.endsWith(".json"));
+        if (jsonFiles.length > 0) {
+          // 这是方法目录，push parts+method
+          results.push([...parts, entry]);
+        }
+        // 继续递归
         results = results.concat(await walk(fullPath, [...parts, entry]));
-      } else if (entry.endsWith(".json")) {
-        // 去掉 mock 根目录和文件名
-        results.push([...parts]);
       }
     }
     return results;
   }
-
   return walk(MOCK_ROOT);
 }
 
@@ -102,7 +105,9 @@ function getMockStateKey(path: string, method: string): string {
 // API端点：获取所有可用的端点
 app.get("/api/endpoints", async (req: Request, res: Response) => {
   try {
+    console.log("Getting all mock templates...");
     const templates = await getAllMockTemplates();
+    console.log("Templates found:", templates);
     const endpoints = templates.map((template) => {
       const method = template[template.length - 1] || "";
       const pathParts = template.slice(0, -1);
@@ -209,7 +214,7 @@ app.get("/api/mock-state", async (req: Request, res: Response) => {
 });
 
 // 主要的mock服务器逻辑
-app.all("*", async (req: Request, res: Response) => {
+app.use(async (req: Request, res: Response, next) => {
   try {
     const reqPath = req.path.replace(/^\//, "");
     const method = req.method.toUpperCase();
@@ -217,7 +222,7 @@ app.all("*", async (req: Request, res: Response) => {
 
     // 跳过API端点
     if (reqPath.startsWith("api/")) {
-      return res.status(404).json({ error: "API endpoint not found" });
+      return next();
     }
 
     const templates = await getAllMockTemplates();
@@ -278,6 +283,11 @@ app.all("*", async (req: Request, res: Response) => {
       method: req.method || "UNKNOWN",
     });
   }
+});
+
+// 404 处理
+app.use((req: Request, res: Response) => {
+  res.status(404).json({ error: "API endpoint not found" });
 });
 
 app.listen(PORT, () => {
