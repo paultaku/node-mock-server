@@ -8,6 +8,10 @@
     "start": "node dist/server.js",
     "dev": "ts-node src/server.ts",
     "generate": "ts-node src/cli/generate-mock.ts",
+    "example": "ts-node src/example-usage.ts",
+    "manager": "ts-node src/manager-example.ts",
+    "multi-demo": "ts-node src/multi-server-demo.ts",
+    "simple-multi": "ts-node src/simple-multi-server.ts",
     "test": "jest",
     "test:watch": "jest --watch"
   },
