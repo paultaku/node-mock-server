@@ -1,5 +1,10 @@
 {
-  "header": [],
+  "header": [
+    {
+      "key": "X-My-Header",
+      "value": "foobar"
+    }
+  ],
   "body": {
     "success": false,
     "message": "Invalid status value",

@@ -2,12 +2,18 @@ import express, { Request, Response } from "express";
 import path from "path";
 import fs from "fs-extra";
 import { z } from "zod";
+import {
+  getStatusJsonPath,
+  readStatusJson,
+  writeStatusJson,
+  loadAllStatusJson,
+} from "./status-manager";
 
 const MOCK_ROOT = path.resolve(__dirname, "../mock");
 const DEFAULT_MOCK_FILE = "successful-operation-200.json";
 
 // Store the mock response state of each endpoint
-const mockStates = new Map<string, string>();
+let mockStates = new Map<string, string>();
 
 // Only allow letters, numbers, -, _, {}, not : * ? ( ) [ ] etc.
 function isValidMockPart(part: string): boolean {
@@ -103,6 +109,13 @@ function createApp(): express.Application {
   app.use(express.json());
   app.use(express.static(path.join(__dirname, "../public")));
 
+  // 服务启动时加载所有 status.json
+  (async () => {
+    const templates = await getAllMockTemplates();
+    mockStates = await loadAllStatusJson(MOCK_ROOT, templates);
+    console.log("[status-manager] 已加载所有 status.json");
+  })();
+
   // API endpoint: get all available endpoints
   app.get("/api/endpoints", async (req: Request, res: Response) => {
     try {
@@ -175,6 +188,11 @@ function createApp(): express.Application {
       const stateKey = getMockStateKey(apiPath, method);
       mockStates.set(stateKey, mockFile);
 
+      // 写入 status.json
+      const statusPath = getStatusJsonPath(MOCK_ROOT, apiPath, method);
+      await writeStatusJson(statusPath, mockFile);
+      console.log(`[status-manager] 已更新 ${statusPath} -> ${mockFile}`);
+
       return res.json({ success: true, message: "Mock response updated" });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -243,10 +261,21 @@ function createApp(): express.Application {
 
       // Select mock response file
       const stateKey = getMockStateKey(apiPath, method);
-      const mockFile =
-        (req.query.mock as string) ||
-        mockStates.get(stateKey) ||
-        DEFAULT_MOCK_FILE;
+      let mockFile = mockStates.get(stateKey);
+      if (!mockFile) {
+        // fallback: 读取 status.json 或默认
+        const statusPath = getStatusJsonPath(MOCK_ROOT, apiPath, method);
+        const status = await readStatusJson(statusPath);
+        if (status && status.selected) {
+          mockFile = status.selected;
+          mockStates.set(stateKey, mockFile);
+          console.log(`[status-manager] fallback 读取 ${statusPath} -> ${mockFile}`);
+        } else {
+          mockFile = DEFAULT_MOCK_FILE;
+          mockStates.set(stateKey, mockFile);
+          console.log(`[status-manager] fallback 默认 ${stateKey} -> ${mockFile}`);
+        }
+      }
       const filePath = path.join(endpointDir, mockFile);
 
       if (!(await fs.pathExists(filePath))) {
@@ -275,14 +304,8 @@ function createApp(): express.Application {
       }
 
       return res.json(mock.body);
-    } catch (err) {
-      console.error("Error handling request:", err);
-      return res.status(500).json({
-        error: "Internal server error",
-        detail: String(err),
-        path: req.path,
-        method: req.method || "UNKNOWN",
-      });
+    } catch (error) {
+      return res.status(500).json({ error: "Mock server error", detail: String(error) });
     }
   });
 
