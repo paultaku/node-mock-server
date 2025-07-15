@@ -4,15 +4,15 @@ import * as path from "path";
 import { z } from "zod";
 import { SwaggerDocSchema, SwaggerDoc } from "./types/swagger";
 
-// 安全的文件名生成
+// Safe filename generation
 function sanitizeFileName(name: string): string {
   return name
     .toLowerCase()
-    .replace(/\s+/g, "-") // 空格转为 -
-    .replace(/[^a-z0-9\-_]/g, "-") // 非法字符全部转为 -
-    .replace(/-+/g, "-") // 连续 - 合并
-    .replace(/^-|-$/g, "") // 去除首尾 -
-    .substring(0, 100); // 限制长度
+    .replace(/\s+/g, "-") // Convert spaces to -
+    .replace(/[^a-z0-9\-_]/g, "-") // Convert all illegal characters to -
+    .replace(/-+/g, "-") // Merge consecutive -
+    .replace(/^-|-$/g, "") // Remove leading and trailing -
+    .substring(0, 100); // Limit length
 }
 
 // 递归生成 mock 数据

@@ -1,155 +1,161 @@
 # Node Mock Server
 
-一个基于 TypeScript 的 mock 服务器，支持从 Swagger (OpenAPI 3.0) YAML 文件自动生成 mock 响应文件，并提供 Web 界面来管理 mock 响应。支持单服务器和多服务器管理，适用于开发、测试和生产环境。
+A TypeScript-based mock server that supports automatic generation of mock response files from Swagger (OpenAPI 3.0) YAML files and provides a web interface for managing mock responses. Supports single-server and multi-server management, suitable for development, testing, and production environments.
 
-## 🚀 功能特性
+## 🚀 Features
 
-- **自动 Mock 文件生成**: 从 Swagger YAML 文件自动生成 mock 响应文件
-- **智能路径匹配**: 支持多级路径和路径参数匹配 (如 `/user/{username}`)
-- **Web 管理界面**: React-based UI，可视化管理和切换 mock 响应
-- **实时切换**: 通过 API 或 UI 实时切换端点的 mock 响应
-- **多服务器管理**: 支持同时启动和管理多个服务器实例
-- **环境隔离**: 为不同环境配置独立的服务器和 mock 数据
-- **类型安全**: 使用 TypeScript 和 Zod 进行类型验证
-- **安全的文件命名**: 自动处理特殊字符，避免路径冲突
+- **Automatic Mock File Generation**: Automatically generate mock response files from Swagger YAML files
+- **Smart Path Matching**: Support multi-level paths and path parameter matching (e.g., `/user/{username}`)
+- **Web Management Interface**: React-based UI for visual management and switching of mock responses
+- **Real-time Switching**: Switch endpoint mock responses in real-time via API or UI
+- **Multi-Server Management**: Support starting and managing multiple server instances simultaneously
+- **Environment Isolation**: Configure independent servers and mock data for different environments
+- **Type Safety**: Use TypeScript and Zod for type validation
+- **Safe File Naming**: Automatically handle special characters to avoid path conflicts
 
-## 📦 安装
+## 📦 Installation
 
 ```bash
 npm install
 ```
 
-## 🎯 快速开始
+## 🎯 Quick Start
 
-### 1. 生成 Mock 文件
+### 1. Generate Mock Files
 
-从 Swagger YAML 文件生成 mock 响应文件：
+Generate mock response files from Swagger YAML file:
 
 ```bash
 npm run generate -- --swagger ./demo/swagger.yaml --output ./mock
 ```
 
-### 2. 启动服务器
+### 2. Start Server
 
-#### 基本启动
+#### Basic Startup
 
 ```bash
-# 开发模式
+# Development mode
 npm run dev
 
-# 生产模式
+# Production mode
 npm run build
 npm start
 ```
 
-#### 使用函数调用启动
+#### Using Function Call Startup
 
 ```typescript
 import { startMockServer } from "./src/server";
 
-// 使用默认端口 3000
+// Using default port 3000 and default mock root directory
 await startMockServer();
 
-// 使用自定义端口
+// Using custom port
 await startMockServer(3001);
+
+// Using custom port and custom mock root directory
+await startMockServer(3001, "./custom-mock");
+
+// Using absolute path
+await startMockServer(3001, "/path/to/mock");
 ```
 
-### 3. 访问管理界面
+### 3. Access Management Interface
 
-打开浏览器访问 `http://localhost:3000` 查看 Web 管理界面。
+Open your browser and visit `http://localhost:3000` to view the web management interface.
 
-## 🏗️ 项目结构
+## 🏗️ Project Structure
 
 ```
 node-mock-server/
 ├── src/
-│   ├── server.ts                    # 核心服务器逻辑
-│   ├── mock-server-manager.ts       # 服务器管理类
-│   ├── example-usage.ts            # 基本使用示例
-│   ├── manager-example.ts          # 管理器使用示例
-│   ├── multi-server-demo.ts        # 多服务器演示
-│   ├── simple-multi-server.ts      # 简化多服务器示例
+│   ├── server.ts                    # Core server logic
+│   ├── mock-server-manager.ts       # Server management classes
+│   ├── example-usage.ts            # Basic usage examples
+│   ├── manager-example.ts          # Manager usage examples
+│   ├── multi-server-demo.ts        # Multi-server demonstration
+│   ├── simple-multi-server.ts      # Simplified multi-server examples
 │   ├── cli/
-│   │   └── generate-mock.ts        # CLI工具入口
-│   ├── mock-generator.ts           # Mock目录和文件生成逻辑
+│   │   └── generate-mock.ts        # CLI tool entry
+│   ├── mock-generator.ts           # Mock directory and file generation logic
 │   └── types/
-│       └── swagger.ts              # Zod类型定义
-├── mock/                           # 自动生成的mock目录
+│       └── swagger.ts              # Zod type definitions
+├── mock/                           # Auto-generated mock directory
 ├── public/
-│   └── index.html                  # React管理界面
+│   └── index.html                  # React management interface
 ├── demo/
-│   └── swagger.yaml                # 示例Swagger文件
+│   └── swagger.yaml                # Example Swagger file
 └── package.json
 ```
 
-## 🔧 使用方法
+## 🔧 Usage
 
-### 单服务器管理
+### Single Server Management
 
-#### 使用 MockServerManager
+#### Using MockServerManager
 
 ```typescript
 import { MockServerManager } from "./src/mock-server-manager";
 
-// 创建服务器管理器
+// Create server manager
 const manager = new MockServerManager({
   port: 3000,
   autoStart: false,
 });
 
-// 启动服务器
+// Start server
 await manager.start();
 
-// 检查状态
+// Check status
 console.log(manager.getStatus());
 
-// 重启服务器
+// Restart server
 await manager.restart();
 
-// 停止服务器
+// Stop server
 await manager.stop();
 ```
 
-#### 使用便捷函数
+#### Using Convenience Functions
 
 ```typescript
 import { createMockServer } from "./src/mock-server-manager";
 
-// 创建并自动启动服务器
+// Create and auto-start server
 const server = createMockServer(3000);
 ```
 
-### 多服务器管理
+### Multi-Server Management
 
-#### 基本多服务器管理
+#### Basic Multi-Server Management
 
 ```typescript
 import { createMultiServerManager } from "./src/mock-server-manager";
 
-// 创建多服务器管理器
+// Create multi-server manager
 const multiManager = createMultiServerManager();
 
-// 启动多个服务器
+// Start multiple servers
 const server1 = await multiManager.createServer(3000);
 const server2 = await multiManager.createServer(3001);
 const server3 = await multiManager.createServer(3002);
 
-// 查看所有服务器状态
+// View all server statuses
 const statuses = multiManager.getAllServerStatus();
 console.log(statuses);
 
-// 停止所有服务器
+// Stop all servers
 await multiManager.stopAllServers();
 ```
 
-#### 环境隔离的多服务器
+#### Environment-Isolated Multi-Servers
 
 ```typescript
-// 为不同环境启动独立的服务器
+// Start independent servers for different environments
 const environments = [
-  { name: "开发环境", port: 3000, mockRoot: "./mock" },
-  { name: "测试环境", port: 3001, mockRoot: "./mock-test" },
-  { name: "预发布环境", port: 3002, mockRoot: "./mock-staging" },
+  { name: "Development Environment", port: 3000, mockRoot: "./mock" },
+  { name: "Testing Environment", port: 3001, mockRoot: "./mock-test" },
+  { name: "Staging Environment", port: 3002, mockRoot: "./mock-staging" },
 ];
 
 for (const env of environments) {
@@ -157,9 +163,14 @@ for (const env of environments) {
     mockRoot: env.mockRoot,
   });
 }
+
+// Or directly use startMockServer function
+await startMockServer(3000, "./mock");
+await startMockServer(3001, "./mock-test");
+await startMockServer(3002, "./mock-staging");
 ```
 
-### 测试环境使用
+### Testing Environment Usage
 
 ```typescript
 import { MockServerManager } from "./src/mock-server-manager";
@@ -171,63 +182,65 @@ async function testWithMockServer() {
   try {
     await server.start();
 
-    // 执行测试...
+    // Execute tests...
     const response = await fetch(`http://localhost:${testPort}/api/endpoints`);
     const endpoints = await response.json();
 
-    // 验证结果...
+    // Verify results...
   } finally {
     await server.stop();
   }
 }
 ```
 
-## 📋 可用的脚本命令
+## 📋 Available Script Commands
 
 ```bash
-# 基本命令
-npm run dev                    # 启动默认服务器
-npm run generate              # 生成 mock 文件
-npm run build                 # 构建项目
-npm start                     # 启动生产服务器
+# Basic commands
+npm run dev                    # Start default server
+npm run generate              # Generate mock files
+npm run build                 # Build project
+npm start                     # Start production server
 
-# 示例和演示
-npm run example               # 运行基本示例
-npm run manager               # 运行管理器示例
-npm run multi-demo            # 运行完整多服务器演示
-npm run simple-multi          # 运行简化多服务器示例
+# Examples and demonstrations
+npm run example               # Run basic examples
+npm run manager               # Run manager examples
+npm run multi-demo            # Run complete multi-server demo
+npm run simple-multi          # Run simplified multi-server examples
+npm run test-refactor         # Test refactored functionality
+npm run custom-mock-demo      # Custom mock root path demo
 
-# 测试
-npm test                      # 运行测试
-npm run test:watch            # 监听模式运行测试
+# Testing
+npm test                      # Run tests
+npm run test:watch            # Run tests in watch mode
 ```
 
-## 🌍 使用场景
+## 🌍 Usage Scenarios
 
-### 1. 多环境开发
+### 1. Multi-Environment Development
 
 ```typescript
-// 同时运行开发、测试、预发布环境
+// Run development, testing, and staging environments simultaneously
 const devServer = await multiManager.createServer(3000);
 const testServer = await multiManager.createServer(3001);
 const stagingServer = await multiManager.createServer(3002);
 ```
 
-### 2. 负载测试
+### 2. Load Testing
 
 ```typescript
-// 启动多个服务器进行负载测试
+// Start multiple servers for load testing
 const servers = [];
 for (let i = 0; i < 5; i++) {
   const server = await multiManager.createServer(3000 + i);
   servers.push(server);
 }
 
-// 轮询分发请求到不同服务器
+// Round-robin distribute requests to different servers
 for (let i = 0; i < 100; i++) {
   const serverIndex = i % servers.length;
   const server = servers[serverIndex];
-  // 发送请求到 server
+  // Send request to server
 }
 ```
 
@@ -318,11 +331,12 @@ curl http://localhost:3000/user/login
 
 ## 🛠️ API 参考
 
-### startMockServer(port?: number): Promise<void>
+### startMockServer(port?: number, mockRoot?: string): Promise<void>
 
 启动 mock 服务器
 
 - `port`: 端口号，默认为 3000
+- `mockRoot`: mock 文件根目录，默认为 "./mock"
 - 返回 Promise，启动成功时 resolve
 
 ### MockServerManager 类

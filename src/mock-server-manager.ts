@@ -32,7 +32,7 @@ export class MockServerManager {
     }
 
     try {
-      await startMockServer(this.port);
+      await startMockServer(this.port, this.mockRoot);
       this.isRunning = true;
       console.log(
         `MockServerManager: Server started successfully on port ${this.port}`

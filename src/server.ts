@@ -9,7 +9,7 @@ import {
   loadAllStatusJson,
 } from "./status-manager";
 
-const MOCK_ROOT = path.resolve(__dirname, "../mock");
+const DEFAULT_MOCK_ROOT = path.resolve(__dirname, "../mock");
 const DEFAULT_MOCK_FILE = "successful-operation-200.json";
 
 // Store the mock response state of each endpoint
@@ -21,7 +21,7 @@ function isValidMockPart(part: string): boolean {
 }
 
 // Get all mock endpoint templates (e.g. user/{username}/GET)
-async function getAllMockTemplates(): Promise<string[][]> {
+async function getAllMockTemplates(mockRoot: string): Promise<string[][]> {
   async function walk(dir: string, parts: string[] = []): Promise<string[][]> {
     const entries = await fs.readdir(dir);
     let results: string[][] = [];
@@ -45,7 +45,7 @@ async function getAllMockTemplates(): Promise<string[][]> {
     }
     return results;
   }
-  return walk(MOCK_ROOT);
+  return walk(mockRoot);
 }
 
 // Path parameter template matching
@@ -102,25 +102,25 @@ function getMockStateKey(path: string, method: string): string {
 }
 
 // Create Express app
-function createApp(): express.Application {
+function createApp(mockRoot: string = DEFAULT_MOCK_ROOT): express.Application {
   const app = express();
 
   // Middleware
   app.use(express.json());
   app.use(express.static(path.join(__dirname, "../public")));
 
-  // 服务启动时加载所有 status.json
+  // Load all status.json files when service starts
   (async () => {
-    const templates = await getAllMockTemplates();
-    mockStates = await loadAllStatusJson(MOCK_ROOT, templates);
-    console.log("[status-manager] 已加载所有 status.json");
+    const templates = await getAllMockTemplates(mockRoot);
+    mockStates = await loadAllStatusJson(mockRoot, templates);
+    console.log("[status-manager] All status.json files loaded");
   })();
 
   // API endpoint: get all available endpoints
   app.get("/api/endpoints", async (req: Request, res: Response) => {
     try {
       console.log("Getting all mock templates...");
-      const templates = await getAllMockTemplates();
+      const templates = await getAllMockTemplates(mockRoot);
       console.log("Templates found:", templates);
       const endpoints = [];
       for (const template of templates) {
@@ -129,8 +129,8 @@ function createApp(): express.Application {
         const apiPath = "/" + pathParts.join("/");
         const stateKey = getMockStateKey(apiPath, method);
         const currentMock = mockStates.get(stateKey) || DEFAULT_MOCK_FILE;
-        // 读取 status.json 获取 delayMillisecond
-        const statusPath = getStatusJsonPath(MOCK_ROOT, apiPath, method);
+        // Read status.json to get delayMillisecond
+        const statusPath = getStatusJsonPath(mockRoot, apiPath, method);
         let delayMillisecond = undefined;
         try {
           const status = await readStatusJson(statusPath);
@@ -142,14 +142,14 @@ function createApp(): express.Application {
           path: apiPath,
           method: method,
           currentMock: currentMock,
-          availableMocks: [] as string[], // 明确类型
+          availableMocks: [] as string[], // Explicit type
           delayMillisecond,
         });
       }
       // Get available mock files for each endpoint
       for (const endpoint of endpoints) {
         const endpointDir = path.join(
-          MOCK_ROOT,
+          mockRoot,
           ...endpoint.path.replace(/^\//, "").split("/"),
           endpoint.method
         );
@@ -180,7 +180,7 @@ function createApp(): express.Application {
 
       // Validate if the mock file exists
       const endpointDir = path.join(
-        MOCK_ROOT,
+        mockRoot,
         ...apiPath.replace(/^\//, "").split("/"),
         method.toUpperCase()
       );
@@ -196,10 +196,10 @@ function createApp(): express.Application {
       const stateKey = getMockStateKey(apiPath, method);
       mockStates.set(stateKey, mockFile);
 
-      // 写入 status.json
-      const statusPath = getStatusJsonPath(MOCK_ROOT, apiPath, method);
+      // Write to status.json
+      const statusPath = getStatusJsonPath(mockRoot, apiPath, method);
       await writeStatusJson(statusPath, mockFile);
-      console.log(`[status-manager] 已更新 ${statusPath} -> ${mockFile}`);
+      console.log(`[status-manager] Updated ${statusPath} -> ${mockFile}`);
 
       return res.json({ success: true, message: "Mock response updated" });
     } catch (error) {
@@ -240,8 +240,8 @@ function createApp(): express.Application {
     }
   });
 
-  // 新增：设置延迟的 API
-  // 1. /api/set-delay 校验和写入
+  // New: API for setting delay
+  // 1. /api/set-delay validation and writing
   const SetDelayRequestSchema = z.object({
     path: z.string(),
     method: z.string(),
@@ -250,18 +250,35 @@ function createApp(): express.Application {
 
   app.post("/api/set-delay", async (req: Request, res: Response) => {
     try {
-      const { path: apiPath, method, delayMillisecond } = SetDelayRequestSchema.parse(req.body);
-      const statusPath = getStatusJsonPath(MOCK_ROOT, apiPath, method);
+      const {
+        path: apiPath,
+        method,
+        delayMillisecond,
+      } = SetDelayRequestSchema.parse(req.body);
+      const statusPath = getStatusJsonPath(mockRoot, apiPath, method);
       let status = await readStatusJson(statusPath);
       if (!status) status = { selected: DEFAULT_MOCK_FILE };
-      await fs.writeJson(statusPath, { ...status, delayMillisecond }, { spaces: 2 });
-      console.log(`[status-manager] 已为 ${statusPath} 设置延迟 ${delayMillisecond}ms`);
-      return res.json({ success: true, message: `Delay set to ${delayMillisecond}ms` });
+      await fs.writeJson(
+        statusPath,
+        { ...status, delayMillisecond },
+        { spaces: 2 }
+      );
+      console.log(
+        `[status-manager] Set delay ${delayMillisecond}ms for ${statusPath}`
+      );
+      return res.json({
+        success: true,
+        message: `Delay set to ${delayMillisecond}ms`,
+      });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Invalid request data", details: error.errors });
+        return res
+          .status(400)
+          .json({ error: "Invalid request data", details: error.errors });
       } else {
-        return res.status(500).json({ error: "Failed to set delay", detail: String(error) });
+        return res
+          .status(500)
+          .json({ error: "Failed to set delay", detail: String(error) });
       }
     }
   });
@@ -278,18 +295,18 @@ function createApp(): express.Application {
         return next();
       }
 
-      const templates = await getAllMockTemplates();
+      const templates = await getAllMockTemplates(mockRoot);
       const match = matchTemplate(requestParts, templates, method);
 
       let endpointDir: string;
       let apiPath: string;
 
       if (match) {
-        endpointDir = path.join(MOCK_ROOT, ...match.template);
+        endpointDir = path.join(mockRoot, ...match.template);
         apiPath = "/" + match.template.slice(0, -1).join("/");
       } else {
         // fallback: exact path
-        endpointDir = path.join(MOCK_ROOT, ...requestParts, method);
+        endpointDir = path.join(mockRoot, ...requestParts, method);
         apiPath = "/" + requestParts.join("/");
       }
 
@@ -297,17 +314,21 @@ function createApp(): express.Application {
       const stateKey = getMockStateKey(apiPath, method);
       let mockFile = mockStates.get(stateKey);
       if (!mockFile) {
-        // fallback: 读取 status.json 或默认
-        const statusPath = getStatusJsonPath(MOCK_ROOT, apiPath, method);
+        // fallback: read status.json or default
+        const statusPath = getStatusJsonPath(mockRoot, apiPath, method);
         const status = await readStatusJson(statusPath);
         if (status && status.selected) {
           mockFile = status.selected;
           mockStates.set(stateKey, mockFile);
-          console.log(`[status-manager] fallback 读取 ${statusPath} -> ${mockFile}`);
+          console.log(
+            `[status-manager] fallback read ${statusPath} -> ${mockFile}`
+          );
         } else {
           mockFile = DEFAULT_MOCK_FILE;
           mockStates.set(stateKey, mockFile);
-          console.log(`[status-manager] fallback 默认 ${stateKey} -> ${mockFile}`);
+          console.log(
+            `[status-manager] fallback default ${stateKey} -> ${mockFile}`
+          );
         }
       }
       const filePath = path.join(endpointDir, mockFile);
@@ -337,29 +358,39 @@ function createApp(): express.Application {
         res.status(parseInt(statusMatch[1]));
       }
 
-      // 读取 status.json 以获取 delayMillisecond
-      const statusPath = getStatusJsonPath(MOCK_ROOT, apiPath, method);
+      // Read status.json to get delayMillisecond
+      const statusPath = getStatusJsonPath(mockRoot, apiPath, method);
       const status = await readStatusJson(statusPath);
       let delayMillisecond = 0;
       if (status) {
-        if (typeof status.delayMillisecond === "number" && status.delayMillisecond > 0) {
+        if (
+          typeof status.delayMillisecond === "number" &&
+          status.delayMillisecond > 0
+        ) {
           delayMillisecond = status.delayMillisecond;
-        } else if (typeof status.delayMillisecond === "number" && status.delayMillisecond > 0) {
-          // 兼容旧字段
+        } else if (
+          typeof status.delayMillisecond === "number" &&
+          status.delayMillisecond > 0
+        ) {
+          // Compatible with old field
           delayMillisecond = status.delayMillisecond * 1000;
         }
         if (delayMillisecond > 0) {
-          console.log(`[status-manager] ${apiPath} ${method} 延迟 ${delayMillisecond}ms`);
+          console.log(
+            `[status-manager] ${apiPath} ${method} delay ${delayMillisecond}ms`
+          );
         }
       }
-      // 延迟响应
+      // Delay response
       if (delayMillisecond > 0) {
         await new Promise((resolve) => setTimeout(resolve, delayMillisecond));
       }
 
       return res.json(mock.body);
     } catch (error) {
-      return res.status(500).json({ error: "Mock server error", detail: String(error) });
+      return res
+        .status(500)
+        .json({ error: "Mock server error", detail: String(error) });
     }
   });
 
@@ -372,16 +403,23 @@ function createApp(): express.Application {
 }
 
 // Function to start the server
-export function startMockServer(port: number = 3000): Promise<void> {
+export function startMockServer(
+  port: number = 3000,
+  mockRoot?: string
+): Promise<void> {
+  const resolvedMockRoot = mockRoot
+    ? path.resolve(mockRoot)
+    : DEFAULT_MOCK_ROOT;
+
   return new Promise((resolve, reject) => {
     try {
-      const app = createApp();
+      const app = createApp(resolvedMockRoot);
       const server = app.listen(port, () => {
         console.log(`Mock server running at http://localhost:${port}`);
         console.log(
           `API endpoints available at http://localhost:${port}/api/endpoints`
         );
-        console.log(`Mock root directory: ${MOCK_ROOT}`);
+        console.log(`Mock root directory: ${resolvedMockRoot}`);
         resolve();
       });
 
@@ -397,7 +435,8 @@ export function startMockServer(port: number = 3000): Promise<void> {
 // If this file is run directly, start the server
 if (require.main === module) {
   const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
-  startMockServer(PORT).catch((error) => {
+  const MOCK_ROOT = process.env.MOCK_ROOT;
+  startMockServer(PORT, MOCK_ROOT).catch((error) => {
     console.error("Failed to start mock server:", error);
     process.exit(1);
   });

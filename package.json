@@ -12,6 +12,9 @@
     "manager": "ts-node src/manager-example.ts",
     "multi-demo": "ts-node src/multi-server-demo.ts",
     "simple-multi": "ts-node src/simple-multi-server.ts",
+    "test-refactor": "ts-node example/test-refactored-server.ts",
+    "custom-mock-demo": "ts-node example/custom-mock-root-demo.ts",
+    "env-isolation": "ts-node example/environment-isolation-example.ts",
     "test": "jest",
     "test:watch": "jest --watch"
   },
