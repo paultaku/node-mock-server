@@ -122,21 +122,30 @@ function createApp(): express.Application {
       console.log("Getting all mock templates...");
       const templates = await getAllMockTemplates();
       console.log("Templates found:", templates);
-      const endpoints = templates.map((template) => {
+      const endpoints = [];
+      for (const template of templates) {
         const method = template[template.length - 1] || "";
         const pathParts = template.slice(0, -1);
         const apiPath = "/" + pathParts.join("/");
         const stateKey = getMockStateKey(apiPath, method);
         const currentMock = mockStates.get(stateKey) || DEFAULT_MOCK_FILE;
-
-        return {
+        // 读取 status.json 获取 delayMillisecond
+        const statusPath = getStatusJsonPath(MOCK_ROOT, apiPath, method);
+        let delayMillisecond = undefined;
+        try {
+          const status = await readStatusJson(statusPath);
+          if (status && typeof status.delayMillisecond === "number") {
+            delayMillisecond = status.delayMillisecond;
+          }
+        } catch {}
+        endpoints.push({
           path: apiPath,
           method: method,
           currentMock: currentMock,
-          availableMocks: [] as string[], // Will be filled below
-        };
-      });
-
+          availableMocks: [] as string[], // 明确类型
+          delayMillisecond,
+        });
+      }
       // Get available mock files for each endpoint
       for (const endpoint of endpoints) {
         const endpointDir = path.join(
@@ -146,7 +155,6 @@ function createApp(): express.Application {
         );
         endpoint.availableMocks = await getAvailableMockFiles(endpointDir);
       }
-
       res.json(endpoints);
     } catch (error) {
       res
@@ -232,6 +240,32 @@ function createApp(): express.Application {
     }
   });
 
+  // 新增：设置延迟的 API
+  // 1. /api/set-delay 校验和写入
+  const SetDelayRequestSchema = z.object({
+    path: z.string(),
+    method: z.string(),
+    delayMillisecond: z.number().min(0).max(60000),
+  });
+
+  app.post("/api/set-delay", async (req: Request, res: Response) => {
+    try {
+      const { path: apiPath, method, delayMillisecond } = SetDelayRequestSchema.parse(req.body);
+      const statusPath = getStatusJsonPath(MOCK_ROOT, apiPath, method);
+      let status = await readStatusJson(statusPath);
+      if (!status) status = { selected: DEFAULT_MOCK_FILE };
+      await fs.writeJson(statusPath, { ...status, delayMillisecond }, { spaces: 2 });
+      console.log(`[status-manager] 已为 ${statusPath} 设置延迟 ${delayMillisecond}ms`);
+      return res.json({ success: true, message: `Delay set to ${delayMillisecond}ms` });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid request data", details: error.errors });
+      } else {
+        return res.status(500).json({ error: "Failed to set delay", detail: String(error) });
+      }
+    }
+  });
+
   // The main mock server logic
   app.use(async (req: Request, res: Response, next) => {
     try {
@@ -301,6 +335,26 @@ function createApp(): express.Application {
       const statusMatch = mockFile.match(/-(\d+)\.json$/);
       if (statusMatch && statusMatch[1]) {
         res.status(parseInt(statusMatch[1]));
+      }
+
+      // 读取 status.json 以获取 delayMillisecond
+      const statusPath = getStatusJsonPath(MOCK_ROOT, apiPath, method);
+      const status = await readStatusJson(statusPath);
+      let delayMillisecond = 0;
+      if (status) {
+        if (typeof status.delayMillisecond === "number" && status.delayMillisecond > 0) {
+          delayMillisecond = status.delayMillisecond;
+        } else if (typeof status.delayMillisecond === "number" && status.delayMillisecond > 0) {
+          // 兼容旧字段
+          delayMillisecond = status.delayMillisecond * 1000;
+        }
+        if (delayMillisecond > 0) {
+          console.log(`[status-manager] ${apiPath} ${method} 延迟 ${delayMillisecond}ms`);
+        }
+      }
+      // 延迟响应
+      if (delayMillisecond > 0) {
+        await new Promise((resolve) => setTimeout(resolve, delayMillisecond));
       }
 
       return res.json(mock.body);

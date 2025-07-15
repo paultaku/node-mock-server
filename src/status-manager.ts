@@ -3,6 +3,7 @@ import path from "path";
 
 export interface StatusJson {
   selected: string;
+  delayMillisecond?: number; // 可选延迟字段，单位毫秒
 }
 
 const DEFAULT_MOCK_FILE = "successful-operation-200.json";

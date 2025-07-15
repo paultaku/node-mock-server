@@ -229,6 +229,8 @@
         const [loading, setLoading] = useState(true);
         const [error, setError] = useState(null);
         const [message, setMessage] = useState(null);
+        // 在 MockServerUI 组件内，给每个 endpoint 卡片加本地 delay 状态
+        const [delayInputs, setDelayInputs] = useState({});
 
         const fetchEndpoints = async () => {
           try {
@@ -280,9 +282,37 @@
           }
         };
 
+        // 在 MockServerUI 组件内添加 delay 相关逻辑
+        const setDelay = async (path, method, delayMillisecond) => {
+          try {
+            const response = await fetch("/api/set-delay", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ path, method, delayMillisecond }),
+            });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            setMessage(`成功设置 ${method} ${path} 的延迟为 ${delayMillisecond} 毫秒`);
+            fetchEndpoints(); // 设置后刷新
+            setTimeout(() => setMessage(null), 3000);
+          } catch (err) {
+            setError(`设置延迟失败: ${err.message}`);
+            setTimeout(() => setError(null), 5000);
+          }
+        };
+
         useEffect(() => {
           fetchEndpoints();
         }, []);
+
+        useEffect(() => {
+          // endpoints 变化时同步 delayInputs
+          const map = {};
+          endpoints.forEach(e => {
+            map[`${e.path}|${e.method}`] =
+              typeof e.delayMillisecond === "number" ? e.delayMillisecond : "";
+          });
+          setDelayInputs(map);
+        }, [endpoints]);
 
         const getMethodClass = (method) => {
           return `method-${method.toLowerCase()}`;
@@ -388,6 +418,34 @@
                         </option>
                       ))}
                     </select>
+                  </div>
+                  {/* 新增延迟设置输入框 */}
+                  <div style={{ marginTop: 10 }}>
+                    <label>
+                      延迟响应 (毫秒):
+                      <input
+                        type="number"
+                        min={0}
+                        max={60000}
+                        step={100}
+                        style={{ width: 80, marginLeft: 8, marginRight: 8 }}
+                        value={delayInputs[`${endpoint.path}|${endpoint.method}`]}
+                        onChange={e => {
+                          const v = e.target.value === "" ? "" : Number(e.target.value);
+                          setDelayInputs(inputs => ({ ...inputs, [`${endpoint.path}|${endpoint.method}`]: v }));
+                        }}
+                      />
+                      <button
+                        style={{ marginLeft: 8 }}
+                        disabled={
+                          String(delayInputs[`${endpoint.path}|${endpoint.method}`]) === String((typeof endpoint.delayMillisecond === "number" ? endpoint.delayMillisecond : ""))
+                        }
+                        onClick={() => {
+                          const v = delayInputs[`${endpoint.path}|${endpoint.method}`];
+                          setDelay(endpoint.path, endpoint.method, v === "" ? 0 : Number(v));
+                        }}
+                      >保存</button>
+                    </label>
                   </div>
                 </div>
               ))}

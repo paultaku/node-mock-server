@@ -1,3 +1,4 @@
 {
-  "selected": "invalid-input-400.json"
+  "selected": "invalid-input-400.json",
+  "delayMillisecond": 1000
 }
