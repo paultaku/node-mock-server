@@ -1,4 +1,4 @@
-import { startMockServer } from "./server";
+import { startMockServer } from "../src/server";
 
 // 示例 1: 使用默认端口启动服务器
 async function startDefaultServer() {
@@ -66,4 +66,4 @@ export {
 // 如果直接运行此文件，启动默认服务器
 if (require.main === module) {
   startDefaultServer();
-}
+} 

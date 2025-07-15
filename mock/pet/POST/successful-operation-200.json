@@ -1,5 +1,9 @@
 {
-  "header": [],
+  "header": [
+    {
+      "X-auth-token": "1234567890"
+    }
+  ],
   "body": {
     "id": 10,
     "name": "doggie",

@@ -4,166 +4,166 @@ import {
 } from "./mock-server-manager";
 
 /**
- * 简化的多服务器管理示例
- * 展示如何快速启动和管理多个 mock 服务器
+ * Simplified multi-server management example
+ * Demonstrates how to quickly start and manage multiple mock servers
  */
 async function simpleMultiServerExample() {
-  console.log("🚀 简化的多服务器管理示例\n");
+  console.log("🚀 Simplified multi-server management example\n");
 
-  // 创建多服务器管理器
+  // Create multi-server manager
   const multiManager = createMultiServerManager();
 
   try {
-    // 1. 启动多个服务器
-    console.log("📡 启动多个服务器...");
+    // 1. Start multiple servers
+    console.log("📡 Starting multiple servers...");
 
     const server1 = await multiManager.createServer(3000);
-    console.log("✅ 服务器 1 已启动 (端口: 3000)");
+    console.log("✅ Server 1 started (port: 3000)");
 
     const server2 = await multiManager.createServer(3001);
-    console.log("✅ 服务器 2 已启动 (端口: 3001)");
+    console.log("✅ Server 2 started (port: 3001)");
 
     const server3 = await multiManager.createServer(3002);
-    console.log("✅ 服务器 3 已启动 (端口: 3002)");
+    console.log("✅ Server 3 started (port: 3002)");
 
-    // 2. 显示所有服务器状态
-    console.log("\n📊 当前服务器状态:");
+    // 2. Show all server statuses
+    console.log("\n📊 Current server statuses:");
     const statuses = multiManager.getAllServerStatus();
     statuses.forEach(({ port, status }) => {
       console.log(
-        `  🟢 端口 ${port}: ${status.url} - ${
-          status.isRunning ? "运行中" : "已停止"
+        `  🟢 Port ${port}: ${status.url} - ${
+          status.isRunning ? "Running" : "Stopped"
         }`
       );
     });
 
-    // 3. 测试服务器连接
-    console.log("\n🔍 测试服务器连接...");
+    // 3. Test server connections
+    console.log("\n🔍 Testing server connections...");
     for (const { port, status } of statuses) {
       try {
         const response = await fetch(`${status.url}/api/endpoints`);
         if (response.ok) {
           const endpoints = (await response.json()) as any[];
-          console.log(`  ✅ 端口 ${port}: ${endpoints.length} 个端点可用`);
+          console.log(`  ✅ Port ${port}: ${endpoints.length} endpoints available`);
         } else {
-          console.log(`  ⚠️  端口 ${port}: API 响应异常 (${response.status})`);
+          console.log(`  ⚠️  Port ${port}: API response abnormal (${response.status})`);
         }
       } catch (error) {
-        console.log(`  ❌ 端口 ${port}: 连接失败`);
+        console.log(`  ❌ Port ${port}: Connection failed`);
       }
     }
 
-    // 4. 动态管理演示
-    console.log("\n🎛️  动态管理演示...");
+    // 4. Dynamic management demo
+    console.log("\n🎛️  Dynamic management demo...");
 
-    // 添加新服务器
+    // Add new server
     const server4 = await multiManager.createServer(3003);
-    console.log("➕ 新服务器已添加 (端口: 3003)");
+    console.log("➕ New server added (port: 3003)");
 
-    // 移除一个服务器
+    // Remove a server
     await multiManager.removeServer(3001);
-    console.log("➖ 服务器已移除 (端口: 3001)");
+    console.log("➖ Server removed (port: 3001)");
 
-    // 显示更新后的状态
-    console.log("\n📊 更新后的服务器状态:");
+    // Show updated statuses
+    console.log("\n📊 Server statuses after update:");
     const updatedStatuses = multiManager.getAllServerStatus();
     updatedStatuses.forEach(({ port, status }) => {
-      console.log(`  🟢 端口 ${port}: ${status.url}`);
+      console.log(`  🟢 Port ${port}: ${status.url}`);
     });
 
-    // 5. 等待一段时间让用户观察
-    console.log("\n⏳ 等待 10 秒让您观察服务器状态...");
+    // 5. Wait for a while for user observation
+    console.log("\n⏳ Waiting 10 seconds for you to observe server statuses...");
     await new Promise((resolve) => setTimeout(resolve, 10000));
 
-    // 6. 优雅关闭所有服务器
-    console.log("\n🛑 关闭所有服务器...");
+    // 6. Gracefully shut down all servers
+    console.log("\n🛑 Shutting down all servers...");
     await multiManager.stopAllServers();
-    console.log("✅ 所有服务器已关闭");
+    console.log("✅ All servers have been shut down");
   } catch (error) {
-    console.error("❌ 发生错误:", error);
-    // 确保清理
+    console.error("❌ Error occurred:", error);
+    // Ensure cleanup
     await multiManager.stopAllServers();
   }
 }
 
 /**
- * 环境隔离的多服务器示例
- * 为不同环境启动独立的服务器
+ * Multi-environment isolation example
+ * Start independent servers for different environments
  */
 async function environmentIsolationExample() {
-  console.log("\n🌍 环境隔离的多服务器示例\n");
+  console.log("\n🌍 Multi-environment isolation example\n");
 
   const multiManager = createMultiServerManager();
 
   try {
-    // 为不同环境启动服务器
+    // Start servers for different environments
     const environments = [
-      { name: "开发环境", port: 3000, mockRoot: "./mock" },
-      { name: "测试环境", port: 3001, mockRoot: "./mock-test" },
-      { name: "预发布环境", port: 3002, mockRoot: "./mock-staging" },
-      { name: "演示环境", port: 3003, mockRoot: "./mock-demo" },
+      { name: "Development", port: 3000, mockRoot: "./mock" },
+      { name: "Testing", port: 3001, mockRoot: "./mock-test" },
+      { name: "Staging", port: 3002, mockRoot: "./mock-staging" },
+      { name: "Demo", port: 3003, mockRoot: "./mock-demo" },
     ];
 
-    console.log("🚀 启动多环境服务器...");
+    console.log("🚀 Starting multi-environment servers...");
 
     for (const env of environments) {
       const server = await multiManager.createServer(env.port, {
         mockRoot: env.mockRoot,
       });
-      console.log(`✅ ${env.name} 已启动 (端口: ${env.port})`);
+      console.log(`✅ ${env.name} started (port: ${env.port})`);
     }
 
-    // 显示环境信息
-    console.log("\n📋 环境信息:");
+    // Show environment info
+    console.log("\n📋 Environment info:");
     const statuses = multiManager.getAllServerStatus();
     statuses.forEach(({ port, status }) => {
       const env = environments.find((e) => e.port === port);
-      const envName = env ? env.name : "未知环境";
-      console.log(`  🟢 ${envName} (端口: ${port}): ${status.url}`);
+      const envName = env ? env.name : "Unknown environment";
+      console.log(`  🟢 ${envName} (port: ${port}): ${status.url}`);
     });
 
-    // 等待用户观察
-    console.log("\n⏳ 等待 15 秒让您观察多环境服务器...");
+    // Wait for user observation
+    console.log("\n⏳ Waiting 15 seconds for you to observe multi-environment servers...");
     await new Promise((resolve) => setTimeout(resolve, 15000));
 
-    // 关闭所有环境
-    console.log("\n🛑 关闭所有环境服务器...");
+    // Shut down all environments
+    console.log("\n🛑 Shutting down all environment servers...");
     await multiManager.stopAllServers();
-    console.log("✅ 所有环境服务器已关闭");
+    console.log("✅ All environment servers have been shut down");
   } catch (error) {
-    console.error("❌ 环境隔离示例发生错误:", error);
+    console.error("❌ Error occurred in environment isolation example:", error);
     await multiManager.stopAllServers();
   }
 }
 
 /**
- * 负载均衡模拟示例
- * 模拟多个服务器处理请求
+ * Load balancing simulation example
+ * Simulate multiple servers handling requests
  */
 async function loadBalancingExample() {
-  console.log("\n⚖️  负载均衡模拟示例\n");
+  console.log("\n⚖️  Load balancing simulation example\n");
 
   const multiManager = createMultiServerManager();
   const servers: any[] = [];
 
   try {
-    // 启动多个服务器模拟负载均衡
+    // Start multiple servers to simulate load balancing
     const serverCount = 3;
-    console.log(`🚀 启动 ${serverCount} 个服务器进行负载均衡模拟...`);
+    console.log(`🚀 Starting ${serverCount} servers for load balancing simulation...`);
 
     for (let i = 0; i < serverCount; i++) {
       const port = 3000 + i;
       const server = await multiManager.createServer(port);
       servers.push(server);
-      console.log(`✅ 服务器 ${i + 1} 已启动 (端口: ${port})`);
+      console.log(`✅ Server ${i + 1} started (port: ${port})`);
     }
 
-    // 模拟负载均衡请求分发
-    console.log("\n🔄 模拟负载均衡请求分发...");
+    // Simulate load balancing request distribution
+    console.log("\n🔄 Simulating load balancing request distribution...");
     const requestCount = 20;
 
     for (let i = 0; i < requestCount; i++) {
-      // 轮询方式分发请求
+      // Round-robin distribution
       const serverIndex = i % servers.length;
       const server = servers[serverIndex];
       const url = server.getStatus().url;
@@ -172,73 +172,52 @@ async function loadBalancingExample() {
         const response = await fetch(`${url}/api/endpoints`);
         if (response.ok) {
           console.log(
-            `  📤 请求 ${i + 1}: 发送到服务器 ${
+            `  📤 Request ${i + 1}: sent to server ${
               serverIndex + 1
-            } (端口: ${server.getPort()}) - ✅ 成功`
+            } (port: ${server.getPort()}) - ✅ Success`
           );
         } else {
           console.log(
-            `  📤 请求 ${i + 1}: 发送到服务器 ${
+            `  📤 Request ${i + 1}: sent to server ${
               serverIndex + 1
-            } (端口: ${server.getPort()}) - ⚠️  失败`
+            } (port: ${server.getPort()}) - ⚠️  Failed`
           );
         }
       } catch (error) {
         console.log(
-          `  📤 请求 ${i + 1}: 发送到服务器 ${
+          `  📤 Request ${i + 1}: sent to server ${
             serverIndex + 1
-          } (端口: ${server.getPort()}) - ❌ 错误`
+          } (port: ${server.getPort()}) - ❌ Error`
         );
       }
 
-      // 短暂延迟
+      // Short delay
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
-    console.log("\n📈 负载均衡模拟完成");
+    console.log("\n📈 Load balancing simulation completed");
 
-    // 等待观察
-    console.log("⏳ 等待 5 秒...");
+    // Wait for observation
+    console.log("\n⏳ Waiting 5 seconds for you to observe...");
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
-    // 关闭所有服务器
-    console.log("\n🛑 关闭负载均衡服务器...");
+    // Shut down all servers
+    console.log("\n🛑 Shutting down all servers...");
     await multiManager.stopAllServers();
-    console.log("✅ 所有负载均衡服务器已关闭");
+    console.log("✅ All servers have been shut down");
   } catch (error) {
-    console.error("❌ 负载均衡示例发生错误:", error);
+    console.error("❌ Error occurred in load balancing example:", error);
     await multiManager.stopAllServers();
   }
 }
 
-// 主函数：运行所有示例
+// Main function
 async function main() {
-  console.log("🎬 多服务器管理示例集合\n");
-  console.log("=".repeat(50));
-
-  try {
-    // 运行简化示例
-    await simpleMultiServerExample();
-
-    // 运行环境隔离示例
-    await environmentIsolationExample();
-
-    // 运行负载均衡示例
-    await loadBalancingExample();
-
-    console.log("\n🎉 所有示例完成！");
-  } catch (error) {
-    console.error("❌ 主函数发生错误:", error);
-  }
+  await simpleMultiServerExample();
+  await environmentIsolationExample();
+  await loadBalancingExample();
 }
 
-// 如果直接运行此文件，执行主函数
 if (require.main === module) {
   main();
 }
-
-export {
-  simpleMultiServerExample,
-  environmentIsolationExample,
-  loadBalancingExample,
-};

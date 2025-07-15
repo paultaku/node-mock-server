@@ -5,8 +5,8 @@ import {
 } from "./mock-server-manager";
 
 /**
- * 多服务器管理演示
- * 展示如何同时启动、管理和监控多个 mock 服务器
+ * Multi-server management demo
+ * Demonstrates how to start, manage, and monitor multiple mock servers simultaneously
  */
 class MultiServerDemo {
   private multiManager: MultiServerManager;
@@ -17,69 +17,69 @@ class MultiServerDemo {
   }
 
   /**
-   * 启动多个不同环境的服务器
+   * Start servers for multiple environments
    */
   async startMultipleEnvironments() {
-    console.log("🚀 启动多环境服务器...\n");
+    console.log("🚀 Starting servers for multiple environments...\n");
 
     try {
-      // 开发环境服务器
+      // Development environment server
       const devServer = await this.multiManager.createServer(3000, {
         mockRoot: "./mock",
       });
       this.servers.set("dev", devServer);
-      console.log("✅ 开发环境服务器已启动 (端口: 3000)");
+      console.log("✅ Development server started (port: 3000)");
 
-      // 测试环境服务器
+      // Test environment server
       const testServer = await this.multiManager.createServer(3001, {
         mockRoot: "./mock-test",
       });
       this.servers.set("test", testServer);
-      console.log("✅ 测试环境服务器已启动 (端口: 3001)");
+      console.log("✅ Test server started (port: 3001)");
 
-      // 预发布环境服务器
+      // Staging environment server
       const stagingServer = await this.multiManager.createServer(3002, {
         mockRoot: "./mock-staging",
       });
       this.servers.set("staging", stagingServer);
-      console.log("✅ 预发布环境服务器已启动 (端口: 3002)");
+      console.log("✅ Staging server started (port: 3002)");
 
-      // 演示环境服务器
+      // Demo environment server
       const demoServer = await this.multiManager.createServer(3003, {
         mockRoot: "./mock-demo",
       });
       this.servers.set("demo", demoServer);
-      console.log("✅ 演示环境服务器已启动 (端口: 3003)");
+      console.log("✅ Demo server started (port: 3003)");
 
-      console.log("\n📊 所有服务器状态:");
+      console.log("\n📊 All server statuses:");
       this.printAllServerStatus();
     } catch (error) {
-      console.error("❌ 启动服务器失败:", error);
+      console.error("❌ Failed to start servers:", error);
       throw error;
     }
   }
 
   /**
-   * 监控所有服务器状态
+   * Monitor all server statuses
    */
   async monitorServers() {
-    console.log("\n🔍 开始监控服务器状态...\n");
+    console.log("\n🔍 Start monitoring server statuses...\n");
 
-    // 每5秒检查一次服务器状态
+    // Check server status every 5 seconds
     const interval = setInterval(async () => {
-      console.log("📊 服务器状态检查:", new Date().toLocaleTimeString());
+      console.log("📊 Server status check:", new Date().toLocaleTimeString());
 
       const statuses = this.multiManager.getAllServerStatus();
       statuses.forEach(({ port, status }) => {
         const statusIcon = status.isRunning ? "🟢" : "🔴";
         console.log(
-          `${statusIcon} 端口 ${port}: ${
-            status.isRunning ? "运行中" : "已停止"
+          `${statusIcon} Port ${port}: ${
+            status.isRunning ? "Running" : "Stopped"
           } - ${status.url}`
         );
       });
 
-      // 检查每个服务器的 API 端点
+      // Check API endpoints for each server
       for (const [name, server] of this.servers) {
         try {
           const response = await fetch(
@@ -87,34 +87,34 @@ class MultiServerDemo {
           );
           if (response.ok) {
             const endpoints = (await response.json()) as any[];
-            console.log(`  📋 ${name} 环境: ${endpoints.length} 个端点可用`);
+            console.log(`  📋 ${name} environment: ${endpoints.length} endpoints available`);
           } else {
-            console.log(`  ⚠️  ${name} 环境: API 不可用`);
+            console.log(`  ⚠️  ${name} environment: API unavailable`);
           }
         } catch (error) {
-          console.log(`  ❌ ${name} 环境: 连接失败`);
+          console.log(`  ❌ ${name} environment: Connection failed`);
         }
       }
       console.log("");
     }, 5000);
 
-    // 30秒后停止监控
+    // Stop monitoring after 30 seconds
     setTimeout(() => {
       clearInterval(interval);
-      console.log("⏹️  监控已停止");
+      console.log("⏹️  Monitoring stopped");
     }, 30000);
   }
 
   /**
-   * 执行负载测试
+   * Perform load test
    */
   async performLoadTest() {
-    console.log("\n⚡ 开始负载测试...\n");
+    console.log("\n⚡ Starting load test...\n");
 
     const testPromises = [];
     const servers = Array.from(this.servers.values());
 
-    // 对每个服务器发送并发请求
+    // Send concurrent requests to each server
     for (let i = 0; i < 10; i++) {
       for (const server of servers) {
         const url = server.getStatus().url;
@@ -136,7 +136,7 @@ class MultiServerDemo {
 
     const results = await Promise.all(testPromises);
 
-    // 统计结果
+    // Aggregate results
     const stats = new Map<string, { success: number; failed: number }>();
     results.forEach((result) => {
       const server = result.server;
@@ -151,150 +151,150 @@ class MultiServerDemo {
       }
     });
 
-    console.log("📈 负载测试结果:");
+    console.log("📈 Load test results:");
     stats.forEach((stat, server) => {
       const successRate = (
         (stat.success / (stat.success + stat.failed)) *
         100
       ).toFixed(1);
       console.log(
-        `  ${server}: ${stat.success} 成功, ${stat.failed} 失败 (成功率: ${successRate}%)`
+        `  ${server}: ${stat.success} succeeded, ${stat.failed} failed (Success rate: ${successRate}%)`
       );
     });
   }
 
   /**
-   * 动态管理服务器
+   * Dynamic server management
    */
   async dynamicServerManagement() {
-    console.log("\n🎛️  动态服务器管理演示...\n");
+    console.log("\n🎛️  Dynamic server management demo...\n");
 
-    // 添加新服务器
-    console.log("➕ 添加新服务器 (端口: 3004)...");
+    // Add new server
+    console.log("➕ Adding new server (port: 3004)...");
     const newServer = await this.multiManager.createServer(3004);
     this.servers.set("dynamic", newServer);
-    console.log("✅ 新服务器已添加");
+    console.log("✅ New server added");
 
-    // 检查端口使用情况
-    console.log("\n🔍 检查端口使用情况:");
+    // Check port usage
+    console.log("\n🔍 Checking port usage:");
     for (let port = 3000; port <= 3005; port++) {
       const inUse = this.multiManager.isPortInUse(port);
-      console.log(`  端口 ${port}: ${inUse ? "🟢 使用中" : "⚪ 空闲"}`);
+      console.log(`  Port ${port}: ${inUse ? "🟢 In use" : "⚪ Free"}`);
     }
 
-    // 移除特定服务器
-    console.log("\n➖ 移除测试环境服务器...");
+    // Remove specific server
+    console.log("\n➖ Removing test environment server...");
     await this.multiManager.removeServer(3001);
     this.servers.delete("test");
-    console.log("✅ 测试环境服务器已移除");
+    console.log("✅ Test environment server removed");
 
-    // 重启特定服务器
-    console.log("\n🔄 重启开发环境服务器...");
+    // Restart specific server
+    console.log("\n🔄 Restarting development environment server...");
     const devServer = this.servers.get("dev");
     if (devServer) {
       await devServer.restart();
-      console.log("✅ 开发环境服务器已重启");
+      console.log("✅ Development environment server restarted");
     }
 
-    console.log("\n📊 最终服务器状态:");
+    console.log("\n📊 Final server statuses:");
     this.printAllServerStatus();
   }
 
   /**
-   * 模拟故障恢复
+   * Simulate failure recovery
    */
   async simulateFailureRecovery() {
-    console.log("\n🛠️  模拟故障恢复...\n");
+    console.log("\n🛠️  Simulating failure recovery...\n");
 
-    // 模拟服务器故障
-    console.log("💥 模拟服务器故障...");
+    // Simulate server failure
+    console.log("💥 Simulating server failure...");
     const demoServer = this.servers.get("demo");
     if (demoServer) {
       await demoServer.stop();
-      console.log("✅ 演示服务器已停止 (模拟故障)");
+      console.log("✅ Demo server stopped (simulated failure)");
 
-      // 等待一段时间
+      // Wait for a while
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      // 自动恢复
-      console.log("🔧 开始故障恢复...");
+      // Auto recovery
+      console.log("🔧 Starting recovery...");
       await demoServer.start();
-      console.log("✅ 演示服务器已恢复");
+      console.log("✅ Demo server recovered");
 
-      // 验证恢复
+      // Verify recovery
       const status = demoServer.getStatus();
-      console.log(`📊 恢复后状态: ${status.isRunning ? "运行中" : "已停止"}`);
+      console.log(`📊 Status after recovery: ${status.isRunning ? "Running" : "Stopped"}`);
     }
   }
 
   /**
-   * 优雅关闭所有服务器
+   * Gracefully shutdown all servers
    */
   async gracefulShutdown() {
-    console.log("\n🛑 开始优雅关闭...\n");
+    console.log("\n🛑 Starting graceful shutdown...\n");
 
     const shutdownPromises = Array.from(this.servers.entries()).map(
       async ([name, server]) => {
-        console.log(`🔄 正在关闭 ${name} 环境服务器...`);
+        console.log(`🔄 Shutting down ${name} environment server...`);
         await server.stop();
-        console.log(`✅ ${name} 环境服务器已关闭`);
+        console.log(`✅ ${name} environment server shut down`);
       }
     );
 
     await Promise.all(shutdownPromises);
-    console.log("\n🎉 所有服务器已优雅关闭");
+    console.log("\n🎉 All servers have been gracefully shut down");
   }
 
   /**
-   * 打印所有服务器状态
+   * Print all server statuses
    */
   private printAllServerStatus() {
     const statuses = this.multiManager.getAllServerStatus();
     statuses.forEach(({ port, status }) => {
       const statusIcon = status.isRunning ? "🟢" : "🔴";
       console.log(
-        `${statusIcon} 端口 ${port}: ${status.url} - ${
-          status.isRunning ? "运行中" : "已停止"
+        `${statusIcon} Port ${port}: ${status.url} - ${
+          status.isRunning ? "Running" : "Stopped"
         }`
       );
     });
   }
 
   /**
-   * 运行完整演示
+   * Run the full demo
    */
   async runFullDemo() {
     try {
-      console.log("🎬 开始多服务器管理演示\n");
+      console.log("🎬 Starting multi-server management demo\n");
       console.log("=".repeat(50));
 
-      // 1. 启动多个环境
+      // 1. Start multiple environments
       await this.startMultipleEnvironments();
 
-      // 2. 监控服务器
+      // 2. Monitor servers
       await this.monitorServers();
 
-      // 3. 负载测试
+      // 3. Load test
       await this.performLoadTest();
 
-      // 4. 动态管理
+      // 4. Dynamic management
       await this.dynamicServerManagement();
 
-      // 5. 故障恢复
+      // 5. Failure recovery
       await this.simulateFailureRecovery();
 
-      // 6. 优雅关闭
+      // 6. Graceful shutdown
       await this.gracefulShutdown();
 
-      console.log("\n🎉 演示完成！");
+      console.log("\n🎉 Demo completed!");
     } catch (error) {
-      console.error("❌ 演示过程中发生错误:", error);
+      console.error("❌ Error occurred during demo:", error);
       await this.gracefulShutdown();
     }
   }
 }
 
-// 便捷函数：快速启动多服务器
+// Convenience function: quickly start multiple servers
 export async function quickStartMultipleServers(
   ports: number[] = [3000, 3001, 3002, 3003]
 ) {
@@ -302,28 +302,28 @@ export async function quickStartMultipleServers(
   const servers: MockServerManager[] = [];
 
   try {
-    console.log("🚀 快速启动多个服务器...\n");
+    console.log("🚀 Quickly starting multiple servers...\n");
 
     for (const port of ports) {
       const server = await multiManager.createServer(port);
       servers.push(server);
-      console.log(`✅ 服务器已启动 (端口: ${port})`);
+      console.log(`✅ Server started (port: ${port})`);
     }
 
-    console.log("\n📊 所有服务器状态:");
+    console.log("\n📊 All server statuses:");
     const statuses = multiManager.getAllServerStatus();
     statuses.forEach(({ port, status }) => {
-      console.log(`  🟢 端口 ${port}: ${status.url}`);
+      console.log(`  🟢 Port ${port}: ${status.url}`);
     });
 
     return { multiManager, servers };
   } catch (error) {
-    console.error("❌ 启动失败:", error);
+    console.error("❌ Failed to start:", error);
     throw error;
   }
 }
 
-// 如果直接运行此文件，执行完整演示
+// If this file is run directly, execute the full demo
 if (require.main === module) {
   const demo = new MultiServerDemo();
   demo.runFullDemo();

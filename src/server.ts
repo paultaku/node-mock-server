@@ -6,34 +6,34 @@ import { z } from "zod";
 const MOCK_ROOT = path.resolve(__dirname, "../mock");
 const DEFAULT_MOCK_FILE = "successful-operation-200.json";
 
-// 存储当前每个端点的mock响应状态
+// Store the mock response state of each endpoint
 const mockStates = new Map<string, string>();
 
-// 只允许字母、数字、-、_、{}，不允许 : * ? ( ) [ ] 等
+// Only allow letters, numbers, -, _, {}, not : * ? ( ) [ ] etc.
 function isValidMockPart(part: string): boolean {
   return /^[a-zA-Z0-9_\-{}]+$/.test(part);
 }
 
-// 获取所有 mock endpoint 模板（如 user/{username}/GET）
+// Get all mock endpoint templates (e.g. user/{username}/GET)
 async function getAllMockTemplates(): Promise<string[][]> {
   async function walk(dir: string, parts: string[] = []): Promise<string[][]> {
     const entries = await fs.readdir(dir);
     let results: string[][] = [];
 
     for (const entry of entries) {
-      if (!isValidMockPart(entry)) continue; // 跳过非法命名
+      if (!isValidMockPart(entry)) continue; // Skip invalid names
       const fullPath = path.join(dir, entry);
       const stat = await fs.stat(fullPath);
 
       if (stat.isDirectory()) {
-        // 判断该目录下是否有 json 文件（即方法目录）
+        // Check if there are json files under this directory (i.e. method directory)
         const files = await fs.readdir(fullPath);
         const jsonFiles = files.filter((f) => f.endsWith(".json"));
         if (jsonFiles.length > 0) {
-          // 这是方法目录，push parts+method
+          // This is a method directory, push parts+method
           results.push([...parts, entry]);
         }
-        // 继续递归
+        // Continue recursion
         results = results.concat(await walk(fullPath, [...parts, entry]));
       }
     }
@@ -42,7 +42,7 @@ async function getAllMockTemplates(): Promise<string[][]> {
   return walk(MOCK_ROOT);
 }
 
-// 路径参数模板匹配
+// Path parameter template matching
 function matchTemplate(
   requestParts: string[],
   templates: string[][],
@@ -80,7 +80,7 @@ function matchTemplate(
   return bestMatch;
 }
 
-// 获取端点的所有可用mock文件
+// Get all available mock files for an endpoint
 async function getAvailableMockFiles(endpointDir: string): Promise<string[]> {
   try {
     const files = await fs.readdir(endpointDir);
@@ -90,20 +90,20 @@ async function getAvailableMockFiles(endpointDir: string): Promise<string[]> {
   }
 }
 
-// 获取当前端点的mock状态key
+// Get the mock state key for the current endpoint
 function getMockStateKey(path: string, method: string): string {
   return `${method.toUpperCase()}:${path}`;
 }
 
-// 创建 Express 应用
+// Create Express app
 function createApp(): express.Application {
   const app = express();
 
-  // 中间件
+  // Middleware
   app.use(express.json());
   app.use(express.static(path.join(__dirname, "../public")));
 
-  // API端点：获取所有可用的端点
+  // API endpoint: get all available endpoints
   app.get("/api/endpoints", async (req: Request, res: Response) => {
     try {
       console.log("Getting all mock templates...");
@@ -120,11 +120,11 @@ function createApp(): express.Application {
           path: apiPath,
           method: method,
           currentMock: currentMock,
-          availableMocks: [] as string[], // 将在下面填充
+          availableMocks: [] as string[], // Will be filled below
         };
       });
 
-      // 获取每个端点的可用mock文件
+      // Get available mock files for each endpoint
       for (const endpoint of endpoints) {
         const endpointDir = path.join(
           MOCK_ROOT,
@@ -142,7 +142,7 @@ function createApp(): express.Application {
     }
   });
 
-  // API端点：设置端点的mock响应
+  // API endpoint: set the mock response for an endpoint
   const SetMockRequestSchema = z.object({
     path: z.string(),
     method: z.string(),
@@ -157,7 +157,7 @@ function createApp(): express.Application {
         mockFile,
       } = SetMockRequestSchema.parse(req.body);
 
-      // 验证mock文件是否存在
+      // Validate if the mock file exists
       const endpointDir = path.join(
         MOCK_ROOT,
         ...apiPath.replace(/^\//, "").split("/"),
@@ -171,7 +171,7 @@ function createApp(): express.Application {
           .json({ error: "Mock file not found", file: mockFilePath });
       }
 
-      // 设置状态
+      // Set state
       const stateKey = getMockStateKey(apiPath, method);
       mockStates.set(stateKey, mockFile);
 
@@ -189,7 +189,7 @@ function createApp(): express.Application {
     }
   });
 
-  // API端点：获取端点的当前mock状态
+  // API endpoint: get the current mock state of an endpoint
   app.get("/api/mock-state", async (req: Request, res: Response) => {
     try {
       const { method, path: apiPath } = req.query;
@@ -214,14 +214,14 @@ function createApp(): express.Application {
     }
   });
 
-  // 主要的mock服务器逻辑
+  // The main mock server logic
   app.use(async (req: Request, res: Response, next) => {
     try {
       const reqPath = req.path.replace(/^\//, "");
       const method = req.method.toUpperCase();
       const requestParts = reqPath ? reqPath.split("/") : [];
 
-      // 跳过API端点
+      // Skip API endpoints
       if (reqPath.startsWith("api/")) {
         return next();
       }
@@ -236,12 +236,12 @@ function createApp(): express.Application {
         endpointDir = path.join(MOCK_ROOT, ...match.template);
         apiPath = "/" + match.template.slice(0, -1).join("/");
       } else {
-        // fallback: 精确路径
+        // fallback: exact path
         endpointDir = path.join(MOCK_ROOT, ...requestParts, method);
         apiPath = "/" + requestParts.join("/");
       }
 
-      // 选择 mock 响应文件
+      // Select mock response file
       const stateKey = getMockStateKey(apiPath, method);
       const mockFile =
         (req.query.mock as string) ||
@@ -259,7 +259,7 @@ function createApp(): express.Application {
 
       const mock = await fs.readJson(filePath);
 
-      // 设置 header
+      // Set headers
       if (Array.isArray(mock.header)) {
         for (const h of mock.header) {
           if (h && h.key && h.value) {
@@ -268,7 +268,7 @@ function createApp(): express.Application {
         }
       }
 
-      // 设置状态码
+      // Set status code
       const statusMatch = mockFile.match(/-(\d+)\.json$/);
       if (statusMatch && statusMatch[1]) {
         res.status(parseInt(statusMatch[1]));
@@ -286,7 +286,7 @@ function createApp(): express.Application {
     }
   });
 
-  // 404 处理
+  // 404 handling
   app.use((req: Request, res: Response) => {
     res.status(404).json({ error: "API endpoint not found" });
   });
@@ -294,7 +294,7 @@ function createApp(): express.Application {
   return app;
 }
 
-// 启动服务器的函数
+// Function to start the server
 export function startMockServer(port: number = 3000): Promise<void> {
   return new Promise((resolve, reject) => {
     try {
@@ -317,7 +317,7 @@ export function startMockServer(port: number = 3000): Promise<void> {
   });
 }
 
-// 如果直接运行此文件，则启动服务器
+// If this file is run directly, start the server
 if (require.main === module) {
   const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
   startMockServer(PORT).catch((error) => {
