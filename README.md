@@ -1,5 +1,7 @@
 # Node Mock Server
 
+[![Node.js Package](https://github.com/paultaku/node-mock-server/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/paultaku/node-mock-server/actions/workflows/npm-publish.yml)
+
 A TypeScript-based mock server that supports automatic generation of mock response files from Swagger (OpenAPI 3.0) YAML files and provides a web interface for managing mock responses. Supports single-server and multi-server management, suitable for development, testing, and production environments.
 
 ## 🚀 Features
