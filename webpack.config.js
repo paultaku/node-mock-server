@@ -3,7 +3,8 @@ const nodeExternals = require("webpack-node-externals");
 
 // 根据环境变量确定模式
 const isProduction = process.env.NODE_ENV === "production";
-const isDevelopment = process.env.NODE_ENV === "development" || !process.env.NODE_ENV;
+const isDevelopment =
+  process.env.NODE_ENV === "development" || !process.env.NODE_ENV;
 
 module.exports = {
   target: "node",
@@ -13,11 +14,7 @@ module.exports = {
     server: "./src/server.ts",
     "cli/generate-mock": "./src/cli/generate-mock.ts",
     "mock-generator": "./src/mock-generator.ts",
-    "mock-server-manager": "./src/mock-server-manager.ts",
-    "simple-multi-server": "./src/simple-multi-server.ts",
     "status-manager": "./src/status-manager.ts",
-    "multi-server-demo": "./src/multi-server-demo.ts",
-    "manager-example": "./src/manager-example.ts",
   },
   output: {
     path: path.resolve(__dirname, "dist"),
