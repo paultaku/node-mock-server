@@ -29,7 +29,15 @@ module.exports = {
               presets: [
                 ["@babel/preset-env", { targets: "defaults" }],
                 ["@babel/preset-react", { runtime: "automatic" }],
-                "@babel/preset-typescript",
+                [
+                  "@babel/preset-typescript",
+                  {
+                    isTSX: true,
+                    allExtensions: true,
+                    jsxPragma: "React",
+                    jsxPragmaFrag: "React.Fragment",
+                  },
+                ],
               ],
             },
           },

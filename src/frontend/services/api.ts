@@ -8,7 +8,7 @@ export const apiService = {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    return response.json();
+    return response.json() as Promise<Endpoint[]>;
   },
 
   async setMockResponse(

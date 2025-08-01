@@ -77,7 +77,7 @@ export const EndpointCard: React.FC<EndpointCardProps> = ({
           <select
             value={endpoint.currentMock}
             onChange={(e) =>
-              onMockChange(endpoint.path, endpoint.method, e.target.value)
+              onMockChange(endpoint.path, endpoint.method, (e.target as HTMLSelectElement).value)
             }
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
@@ -101,7 +101,7 @@ export const EndpointCard: React.FC<EndpointCardProps> = ({
               step={100}
               value={delayInput}
               onChange={(e) =>
-                onDelayChange(endpoint.path, endpoint.method, e.target.value)
+                onDelayChange(endpoint.path, endpoint.method, (e.target as HTMLInputElement).value)
               }
               className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="0"
