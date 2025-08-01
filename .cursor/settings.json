@@ -1,0 +1,31 @@
+{
+  "language": "en",
+  "rules": {
+    "typescript-coding-standards": {
+      "enabled": true,
+      "priority": "high"
+    },
+    "project-structure": {
+      "enabled": true,
+      "priority": "high"
+    },
+    "api-development": {
+      "enabled": true,
+      "priority": "medium"
+    },
+    "mock-server-patterns": {
+      "enabled": true,
+      "priority": "medium"
+    },
+    "development-workflow": {
+      "enabled": true,
+      "priority": "low"
+    }
+  },
+  "export": {
+    "language": "en",
+    "format": "markdown",
+    "includeCode": true,
+    "includeComments": true
+  }
+}

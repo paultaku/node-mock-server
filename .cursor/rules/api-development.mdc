@@ -1,60 +1,64 @@
-# API 开发最佳实践
+# API Development Best Practices
 
-## Swagger/OpenAPI 规范
+## Swagger/OpenAPI Specifications
 
-参考 [demo/swagger.yaml](mdc:demo/swagger.yaml) 作为标准模板：
+Reference [demo/swagger.yaml](mdc:demo/swagger.yaml) as the standard template:
 
-### 必需字段
+### Required Fields
 
-- `openapi` 版本
-- `info` 基本信息（title, version）
-- `paths` API 路径定义
-- `components` 可复用的 schema 定义
+- `openapi` version
+- `info` basic information (title, version)
+- `paths` API path definitions
+- `components` reusable schema definitions
 
-### 响应定义
+### Response Definitions
 
-为每个 API 端点定义完整的响应：
+Define complete responses for each API endpoint:
 
-- 成功响应（200, 201 等）
-- 错误响应（400, 404, 422 等）
-- 默认错误响应
+- Success responses (200, 201, etc.)
+- Error responses (400, 404, 422, etc.)
+- Default error responses
 
-## Mock 数据生成策略
+## Mock Data Generation Strategy
 
-基于 [src/mock-generator.ts](mdc:src/mock-generator.ts) 的实现：
+Based on the implementation in [src/mock-generator.ts](mdc:src/mock-generator.ts):
 
-### 数据类型映射
+### Data Type Mapping
 
-- `string` → 默认值或枚举第一个值
+- `string` → default value or first enum value
 - `integer/number` → 0
 - `boolean` → true
-- `object` → 递归生成属性
-- `array` → 包含一个元素的数组
-- `date-time` → ISO 8601 格式
-- `date` → YYYY-MM-DD 格式
+- `object` → recursively generate properties
+- `array` → array containing one element
+- `date-time` → ISO 8601 format
+- `date` → YYYY-MM-DD format
 
-### 优先级规则
+### Priority Rules
 
-1. `example` 字段（最高优先级）
-2. `enum` 第一个值
-3. 基于类型的默认值
-4. `null`（最低优先级）
+1. `example` field (highest priority)
+2. First `enum` value
+3. Type-based default value
+4. `null` (lowest priority)
 
-## 测试策略
+## Testing Strategy
 
-- 使用生成的 Mock 数据进行集成测试
-- 测试不同 HTTP 状态码的响应
-- 验证路径参数解析
-- 测试错误处理逻辑
+- Use generated mock data for integration testing
+- Test responses for different HTTP status codes
+- Validate path parameter parsing
+- Test error handling logic
 
-## 部署和配置
+## Deployment and Configuration
 
-- 默认端口：3000
-- Mock 根目录：`./mock`
-- 支持通过查询参数选择不同的 Mock 文件
-- 环境变量配置支持
-  description:
-  globs:
+- Default port: 3000
+- Mock root directory: `./mock`
+- Support for selecting different mock files via query parameters
+- Environment variable configuration support
+  description: API development best practices and mock data generation guidelines
+  globs: ["src/**/*.ts", "demo/**/*.yaml", "mock/**/*"]
   alwaysApply: false
 
+---
+description:
+globs:
+alwaysApply: false
 ---

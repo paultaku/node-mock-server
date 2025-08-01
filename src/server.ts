@@ -404,7 +404,7 @@ function createApp(mockRoot: string = DEFAULT_MOCK_ROOT): express.Application {
 
 // Function to start the server
 export function startMockServer(
-  port: number = 3000,
+  port: number = 3001,
   mockRoot?: string
 ): Promise<void> {
   const resolvedMockRoot = mockRoot
@@ -434,7 +434,7 @@ export function startMockServer(
 
 // If this file is run directly, start the server
 if (require.main === module) {
-  const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+  const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3001;
   const MOCK_ROOT = process.env.MOCK_ROOT;
   startMockServer(PORT, MOCK_ROOT).catch((error) => {
     console.error("Failed to start mock server:", error);
