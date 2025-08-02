@@ -1,6 +1,6 @@
 {
   "name": "@paultaku/node-mock-server",
-  "version": "1.1.0-rc-2",
+  "version": "1.1.0-rc-4",
   "description": "A TypeScript-based mock server with automatic Swagger-based mock file generation",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
