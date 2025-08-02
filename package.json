@@ -21,7 +21,6 @@
     "build:frontend:watch": "NODE_ENV=development webpack --config webpack.frontend.config.js --watch",
     "dev:frontend": "webpack serve --config webpack.frontend.config.js",
     "dev:backend": "ts-node src/server.ts",
-    "start": "node dist/server.js",
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
     "generate": "ts-node src/cli/generate-mock.ts",
     "test": "jest",
@@ -29,7 +28,7 @@
     "prepublishOnly": "npm run build",
     "clean": "rm -rf dist",
     "prebuild": "npm run clean",
-    "copy-public": "cp -r public dist/"
+    "copy-public": "cp -r src/public dist/"
   },
   "dependencies": {
     "commander": "^13.1.0",
@@ -68,7 +67,8 @@
     "webpack": "^5.101.0",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.0.4",
-    "webpack-node-externals": "^3.0.0"
+    "webpack-node-externals": "^3.0.0",
+    "webpack-shebang-plugin": "^1.1.8"
   },
   "keywords": [
     "mock-server",

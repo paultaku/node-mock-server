@@ -107,7 +107,7 @@ function createApp(mockRoot: string = DEFAULT_MOCK_ROOT): express.Application {
 
   // Middleware
   app.use(express.json());
-  app.use(express.static(path.join(__dirname, "../public")));
+  app.use(express.static(path.join(__dirname, "./public")));
 
   // Load all status.json files when service starts
   (async () => {

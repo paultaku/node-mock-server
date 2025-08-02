@@ -11,7 +11,7 @@ module.exports = {
   mode: isProduction ? "production" : "development",
   entry: "./src/frontend/index.tsx",
   output: {
-    path: path.resolve(__dirname, "public/dist"),
+    path: path.resolve(__dirname, "src/public/dist"),
     filename: isProduction ? "[name].[contenthash].js" : "[name].js",
     clean: true,
   },
@@ -79,7 +79,7 @@ module.exports = {
   devtool: isProduction ? "source-map" : "eval-source-map",
   devServer: {
     static: {
-      directory: path.join(__dirname, "public"),
+      directory: path.join(__dirname, "src/public"),
     },
     compress: true,
     port: 3000,

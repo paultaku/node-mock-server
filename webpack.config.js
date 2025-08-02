@@ -1,5 +1,6 @@
 const path = require("path");
 const nodeExternals = require("webpack-node-externals");
+const ShebangPlugin = require("webpack-shebang-plugin");
 
 // 根据环境变量确定模式
 const isProduction = process.env.NODE_ENV === "production";
@@ -73,4 +74,5 @@ module.exports = {
     chunks: false,
     chunkModules: false,
   },
+  plugins: [new ShebangPlugin()],
 };
