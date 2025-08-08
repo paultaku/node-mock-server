@@ -54,8 +54,7 @@ jobs:
             echo "VERSION_COMMAND=npm version patch --no-git-tag-version" >> $GITHUB_ENV
           else
             echo "VERSION_STRATEGY=prerelease" >> $GITHUB_ENV
-            # echo "VERSION_COMMAND=npm version prerelease --preid=rc --no-git-tag-version" >> $GITHUB_ENV
-            echo "VERSION_COMMAND=npm version $TAG_VERSION --no-git-tag-version && npm publish" >> $GITHUB_ENV
+            echo "VERSION_COMMAND=npm version prerelease --preid=rc --git-tag-version" >> $GITHUB_ENV
           fi
 
       - name: Update Version and Publish
