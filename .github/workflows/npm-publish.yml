@@ -42,6 +42,10 @@ jobs:
           registry-url: https://registry.npmjs.org/
       - run: npm ci
 
+      - name: Get Git Tag Version
+        id: get_tag
+        run: echo "TAG_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
       - name: Determine Version Strategy
         id: version_strategy
         run: |
@@ -50,7 +54,8 @@ jobs:
             echo "VERSION_COMMAND=npm version patch --no-git-tag-version" >> $GITHUB_ENV
           else
             echo "VERSION_STRATEGY=prerelease" >> $GITHUB_ENV
-            echo "VERSION_COMMAND=npm version prerelease --preid=rc --no-git-tag-version" >> $GITHUB_ENV
+            # echo "VERSION_COMMAND=npm version prerelease --preid=rc --no-git-tag-version" >> $GITHUB_ENV
+            echo "VERSION_COMMAND=npm version $TAG_VERSION --no-git-tag-version && npm publish" >> $GITHUB_ENV
           fi
 
       - name: Update Version and Publish
