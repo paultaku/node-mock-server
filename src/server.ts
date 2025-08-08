@@ -121,7 +121,7 @@ function createApp(mockRoot: string = DEFAULT_MOCK_ROOT): express.Application {
   })();
 
   // API endpoint: get all available endpoints
-  app.get("/api/endpoints", async (req: Request, res: Response) => {
+  app.get("/_mock/endpoints", async (req: Request, res: Response) => {
     try {
       console.log("Getting all mock templates...");
       const templates = await getAllMockTemplates(mockRoot);
@@ -280,7 +280,7 @@ function createApp(mockRoot: string = DEFAULT_MOCK_ROOT): express.Application {
     delayMillisecond: z.number().min(0).max(60000),
   });
 
-  app.post("/api/set-delay", async (req: Request, res: Response) => {
+  app.post("/_mock/set-delay", async (req: Request, res: Response) => {
     try {
       const {
         path: apiPath,
@@ -449,7 +449,7 @@ export function startMockServer(
       const server = app.listen(port, () => {
         console.log(`Mock server running at http://localhost:${port}`);
         console.log(
-          `API endpoints available at http://localhost:${port}/api/endpoints`
+          `API endpoints available at http://localhost:${port}/_mock/endpoints`
         );
         console.log(`Mock root directory: ${resolvedMockRoot}`);
         resolve();

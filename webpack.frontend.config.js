@@ -86,7 +86,7 @@ module.exports = {
     hot: true,
     proxy: [
       {
-        context: ["/api", "/_mock"],
+        context: ["/_mock"],
         target: "http://localhost:3001",
         changeOrigin: true,
       },
