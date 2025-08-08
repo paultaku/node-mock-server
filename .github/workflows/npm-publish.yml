@@ -68,6 +68,8 @@ jobs:
 
       - name: Show Version Changes
         run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
           echo "=== Version Update Summary ==="
           echo "Branch: ${{ github.ref_name }}"
           echo "Version Strategy: $VERSION_STRATEGY"
