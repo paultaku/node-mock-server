@@ -9,7 +9,7 @@ const program = new Command();
 program
   .name("node-mock-server")
   .description("Generate mock files from Swagger YAML")
-  .version("1.0.0")
+  .version("1.1.0-rc-4")
   .requiredOption("-s, --swagger <path>", "Path to swagger yaml file")
   .requiredOption("-o, --output <path>", "Output mock root directory")
   .parse(process.argv);

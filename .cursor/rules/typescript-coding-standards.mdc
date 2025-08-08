@@ -1,37 +1,41 @@
-# TypeScript 编码标准
+# TypeScript Coding Standards
 
-## 类型定义
+## Type Definitions
 
-- 使用 Zod 进行运行时类型验证，参考 [src/types/swagger.ts](mdc:src/types/swagger.ts)
-- 优先使用 `z.infer<typeof Schema>` 来推导类型
-- 为所有函数参数和返回值添加明确的类型注解
+- Use Zod for runtime type validation, reference [src/types/swagger.ts](mdc:src/types/swagger.ts)
+- Prefer `z.infer<typeof Schema>` for type inference
+- Add explicit type annotations for all function parameters and return values
 
-## 导入规范
+## Import Conventions
 
-- 使用 ES6 模块语法 (`import/export`)
-- 按以下顺序组织导入：
-  1. Node.js 内置模块 (`path`, `fs`, `express`)
-  2. 第三方库 (`yaml`, `zod`, `fs-extra`)
-  3. 本地模块 (`./types/swagger`)
+- Use ES6 module syntax (`import/export`)
+- Organize imports in the following order:
+  1. Node.js built-in modules (`path`, `fs`, `express`)
+  2. Third-party libraries (`yaml`, `zod`, `fs-extra`)
+  3. Local modules (`./types/swagger`)
 
-## 错误处理
+## Error Handling
 
-- 使用 try-catch 包装异步操作
-- 在 [src/server.ts](mdc:src/server.ts) 中统一处理错误响应
-- 提供有意义的错误信息
+- Wrap async operations with try-catch blocks
+- Handle error responses uniformly in [src/server.ts](mdc:src/server.ts)
+- Provide meaningful error messages
 
-## 代码组织
+## Code Organization
 
-- 将复杂逻辑拆分为独立函数
-- 使用描述性的函数和变量名
-- 添加必要的注释说明复杂算法
+- Break complex logic into independent functions
+- Use descriptive function and variable names
+- Add necessary comments to explain complex algorithms
 
-## 异步编程
+## Async Programming
 
-- 优先使用 `async/await` 而不是 Promise 链
-- 确保所有异步操作都有适当的错误处理
-  description:
-  globs:
+- Prefer `async/await` over Promise chains
+- Ensure all async operations have appropriate error handling
+  description: TypeScript coding standards and best practices for this project
+  globs: ["src/**/*.ts"]
   alwaysApply: false
 
+---
+description:
+globs:
+alwaysApply: false
 ---

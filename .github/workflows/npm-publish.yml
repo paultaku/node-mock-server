@@ -1,11 +1,21 @@
-# This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
+# This workflow will run tests using node and then publish a package to npm
 # For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
 
 name: Node.js Package
 
 on:
-  release:
-    types: [created]
+  push:
+    branches:
+      - master
+      - main
+      - develop
+      - feature/*
+      - hotfix/*
+      - release/*
+  pull_request:
+    branches:
+      - master
+      - main
 
 jobs:
   build:
@@ -16,17 +26,66 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
+      - run: npm run build
 
   publish-npm:
     needs: build
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.ref, 'refs/heads/hotfix/') || startsWith(github.ref, 'refs/heads/release/'))
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org/
       - run: npm ci
-      - run: npm publish
+
+      - name: Configure Git
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+
+      - name: Determine Version Strategy
+        id: version_strategy
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/master" || "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "VERSION_STRATEGY=official" >> $GITHUB_ENV
+            echo "VERSION_COMMAND=npm version patch --no-git-tag-version" >> $GITHUB_ENV
+          else
+            echo "VERSION_STRATEGY=prerelease" >> $GITHUB_ENV
+            echo "VERSION_COMMAND=npm version prerelease --preid=rc --no-git-tag-version" >> $GITHUB_ENV
+          fi
+
+      - name: Update Version and Publish
+        run: |
+          echo "Using version strategy: $VERSION_STRATEGY"
+          echo "Executing: $VERSION_COMMAND"
+          $VERSION_COMMAND
+          npm publish
         env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+
+      - name: Show Version Changes
+        run: |
+          echo "=== Version Update Summary ==="
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Version Strategy: $VERSION_STRATEGY"
+          echo "Updated package.json version:"
+          cat package.json | grep '"version"'
+          echo ""
+          echo "=== Git Status ==="
+          git status
+          echo ""
+          echo "=== Changed Files ==="
+          git diff --name-only
+          echo ""
+          echo "=== Next Steps ==="
+          echo "1. Review the version changes in package.json"
+          echo "2. Commit and push the changes manually:"
+          echo "   git add package.json package-lock.json"
+          echo "   git commit -m 'chore: bump version for ${{ github.ref_name }} branch'"
+          echo "   git push origin ${{ github.ref_name }}"
+          echo ""
+          echo "Note: This prevents infinite loop of version updates."

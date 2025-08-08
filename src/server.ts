@@ -34,7 +34,9 @@ async function getAllMockTemplates(mockRoot: string): Promise<string[][]> {
       if (stat.isDirectory()) {
         // Check if there are json files under this directory (i.e. method directory)
         const files = await fs.readdir(fullPath);
-        const jsonFiles = files.filter((f) => f.endsWith(".json"));
+        const jsonFiles = files.filter(
+          (f) => f.endsWith(".json") && f !== "status.json"
+        );
         if (jsonFiles.length > 0) {
           // This is a method directory, push parts+method
           results.push([...parts, entry]);
@@ -90,7 +92,9 @@ function matchTemplate(
 async function getAvailableMockFiles(endpointDir: string): Promise<string[]> {
   try {
     const files = await fs.readdir(endpointDir);
-    return files.filter((file): file is string => file.endsWith(".json"));
+    return files.filter(
+      (file): file is string => file.endsWith(".json") && file !== "status.json"
+    );
   } catch (error) {
     return [];
   }
@@ -107,7 +111,7 @@ function createApp(mockRoot: string = DEFAULT_MOCK_ROOT): express.Application {
 
   // Middleware
   app.use(express.json());
-  app.use(express.static(path.join(__dirname, "../public")));
+  app.use(express.static(path.join(__dirname, "./public")));
 
   // Load all status.json files when service starts
   (async () => {
@@ -117,7 +121,7 @@ function createApp(mockRoot: string = DEFAULT_MOCK_ROOT): express.Application {
   })();
 
   // API endpoint: get all available endpoints
-  app.get("/api/endpoints", async (req: Request, res: Response) => {
+  app.get("/_mock/endpoints", async (req: Request, res: Response) => {
     try {
       console.log("Getting all mock templates...");
       const templates = await getAllMockTemplates(mockRoot);
@@ -170,53 +174,73 @@ function createApp(mockRoot: string = DEFAULT_MOCK_ROOT): express.Application {
     mockFile: z.string(),
   });
 
-  app.post("/api/set-mock", async (req: Request, res: Response) => {
+  // API endpoint: update mock status via /_mock URL segment
+  app.post("/_mock/update", async (req: Request, res: Response) => {
     try {
-      const {
-        path: apiPath,
-        method,
-        mockFile,
-      } = SetMockRequestSchema.parse(req.body);
+      const { path: apiPath, method, mockFile, delayMillisecond } = req.body;
 
-      // Validate if the mock file exists
-      const endpointDir = path.join(
-        mockRoot,
-        ...apiPath.replace(/^\//, "").split("/"),
-        method.toUpperCase()
-      );
-      const mockFilePath = path.join(endpointDir, mockFile);
-
-      if (!(await fs.pathExists(mockFilePath))) {
+      if (!apiPath || !method) {
         return res
           .status(400)
-          .json({ error: "Mock file not found", file: mockFilePath });
+          .json({ error: "Missing required parameters: path and method" });
       }
 
-      // Set state
-      const stateKey = getMockStateKey(apiPath, method);
-      mockStates.set(stateKey, mockFile);
-
-      // Write to status.json
       const statusPath = getStatusJsonPath(mockRoot, apiPath, method);
-      await writeStatusJson(statusPath, mockFile);
-      console.log(`[status-manager] Updated ${statusPath} -> ${mockFile}`);
+      let status = await readStatusJson(statusPath);
+      if (!status) status = { selected: DEFAULT_MOCK_FILE };
 
-      return res.json({ success: true, message: "Mock response updated" });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res
-          .status(400)
-          .json({ error: "Invalid request data", details: error.errors });
-      } else {
-        return res
-          .status(500)
-          .json({ error: "Failed to set mock", detail: String(error) });
+      // Update mock file if provided
+      if (mockFile) {
+        // Validate if the mock file exists
+        const endpointDir = path.join(
+          mockRoot,
+          ...apiPath.replace(/^\//, "").split("/"),
+          method.toUpperCase()
+        );
+        const mockFilePath = path.join(endpointDir, mockFile);
+
+        if (!(await fs.pathExists(mockFilePath))) {
+          return res
+            .status(400)
+            .json({ error: "Mock file not found", file: mockFilePath });
+        }
+
+        status.selected = mockFile;
+        const stateKey = getMockStateKey(apiPath, method);
+        mockStates.set(stateKey, mockFile);
       }
+
+      // Update delay if provided
+      if (typeof delayMillisecond === "number") {
+        if (delayMillisecond < 0 || delayMillisecond > 60000) {
+          return res
+            .status(400)
+            .json({ error: "Delay must be between 0 and 60000 milliseconds" });
+        }
+        status.delayMillisecond = delayMillisecond;
+      }
+
+      // Write updated status
+      await fs.writeJson(statusPath, status, { spaces: 2 });
+      console.log(`[status-manager] Updated ${statusPath} via /_mock/update`);
+
+      return res.json({
+        success: true,
+        message: "Mock status updated successfully",
+        status: {
+          selected: status.selected,
+          delayMillisecond: status.delayMillisecond,
+        },
+      });
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ error: "Failed to update mock status", detail: String(error) });
     }
   });
 
-  // API endpoint: get the current mock state of an endpoint
-  app.get("/api/mock-state", async (req: Request, res: Response) => {
+  // API endpoint: get mock status via /_mock URL segment
+  app.get("/_mock/status", async (req: Request, res: Response) => {
     try {
       const { method, path: apiPath } = req.query;
       if (
@@ -229,14 +253,22 @@ function createApp(mockRoot: string = DEFAULT_MOCK_ROOT): express.Application {
           .status(400)
           .json({ error: "Missing method or path parameter" });
       }
+
+      const statusPath = getStatusJsonPath(mockRoot, apiPath, method);
+      const status = await readStatusJson(statusPath);
       const stateKey = getMockStateKey(apiPath, method);
       const currentMock = mockStates.get(stateKey) || DEFAULT_MOCK_FILE;
 
-      return res.json({ currentMock });
+      return res.json({
+        path: apiPath,
+        method: method,
+        currentMock: status?.selected || currentMock,
+        delayMillisecond: status?.delayMillisecond || 0,
+      });
     } catch (error) {
       return res
         .status(500)
-        .json({ error: "Failed to get mock state", detail: String(error) });
+        .json({ error: "Failed to get mock status", detail: String(error) });
     }
   });
 
@@ -248,7 +280,7 @@ function createApp(mockRoot: string = DEFAULT_MOCK_ROOT): express.Application {
     delayMillisecond: z.number().min(0).max(60000),
   });
 
-  app.post("/api/set-delay", async (req: Request, res: Response) => {
+  app.post("/_mock/set-delay", async (req: Request, res: Response) => {
     try {
       const {
         path: apiPath,
@@ -404,7 +436,7 @@ function createApp(mockRoot: string = DEFAULT_MOCK_ROOT): express.Application {
 
 // Function to start the server
 export function startMockServer(
-  port: number = 3000,
+  port: number = 3001,
   mockRoot?: string
 ): Promise<void> {
   const resolvedMockRoot = mockRoot
@@ -417,7 +449,7 @@ export function startMockServer(
       const server = app.listen(port, () => {
         console.log(`Mock server running at http://localhost:${port}`);
         console.log(
-          `API endpoints available at http://localhost:${port}/api/endpoints`
+          `API endpoints available at http://localhost:${port}/_mock/endpoints`
         );
         console.log(`Mock root directory: ${resolvedMockRoot}`);
         resolve();
@@ -434,7 +466,7 @@ export function startMockServer(
 
 // If this file is run directly, start the server
 if (require.main === module) {
-  const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+  const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3001;
   const MOCK_ROOT = process.env.MOCK_ROOT;
   startMockServer(PORT, MOCK_ROOT).catch((error) => {
     console.error("Failed to start mock server:", error);

@@ -1,4 +1,4 @@
 {
-  "selected": "invalid-input-400.json",
-  "delayMillisecond": 1000
+  "selected": "validation-exception-422.json",
+  "delayMillisecond": 500
 }
