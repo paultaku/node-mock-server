@@ -34,7 +34,9 @@ async function getAllMockTemplates(mockRoot: string): Promise<string[][]> {
       if (stat.isDirectory()) {
         // Check if there are json files under this directory (i.e. method directory)
         const files = await fs.readdir(fullPath);
-        const jsonFiles = files.filter((f) => f.endsWith(".json"));
+        const jsonFiles = files.filter(
+          (f) => f.endsWith(".json") && f !== "status.json"
+        );
         if (jsonFiles.length > 0) {
           // This is a method directory, push parts+method
           results.push([...parts, entry]);
@@ -90,7 +92,9 @@ function matchTemplate(
 async function getAvailableMockFiles(endpointDir: string): Promise<string[]> {
   try {
     const files = await fs.readdir(endpointDir);
-    return files.filter((file): file is string => file.endsWith(".json"));
+    return files.filter(
+      (file): file is string => file.endsWith(".json") && file !== "status.json"
+    );
   } catch (error) {
     return [];
   }

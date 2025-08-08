@@ -1,11 +1,10 @@
 import { Endpoint } from "../types";
 
-const API_BASE = "/api";
 const MOCK_API_BASE = "/_mock";
 
 export const apiService = {
   async fetchEndpoints(): Promise<Endpoint[]> {
-    const response = await fetch(`${API_BASE}/endpoints`);
+    const response = await fetch(`${MOCK_API_BASE}/endpoints`);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
