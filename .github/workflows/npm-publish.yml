@@ -1,11 +1,21 @@
-# This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
+# This workflow will run tests using node and then publish a package to npm
 # For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
 
 name: Node.js Package
 
 on:
-  release:
-    types: [created]
+  push:
+    branches:
+      - master
+      - main
+      - develop
+      - feature/*
+      - hotfix/*
+      - release/*
+  pull_request:
+    branches:
+      - master
+      - main
 
 jobs:
   build:
@@ -16,22 +26,46 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
+      - run: npm run build
 
   publish-npm:
     needs: build
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.ref, 'refs/heads/hotfix/') || startsWith(github.ref, 'refs/heads/release/')) && !contains(github.event.head_commit.message, '[skip publish]')
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org/
       - run: npm ci
-      - name: Get Git Tag Version
-        id: get_tag
-        run: echo "TAG_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      - name: Publish using Git Tag Version
-        run: npm version $TAG_VERSION --no-git-tag-version && npm publish
+      - name: Determine Version Strategy
+        id: version_strategy
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/master" || "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "VERSION_STRATEGY=official" >> $GITHUB_ENV
+            echo "VERSION_COMMAND=npm version patch --no-git-tag-version" >> $GITHUB_ENV
+          else
+            echo "VERSION_STRATEGY=prerelease" >> $GITHUB_ENV
+            echo "VERSION_COMMAND=npm version prerelease --preid=rc --no-git-tag-version" >> $GITHUB_ENV
+          fi
+
+      - name: Update Version and Publish
+        run: |
+          echo "Using version strategy: $VERSION_STRATEGY"
+          echo "Executing: $VERSION_COMMAND"
+          $VERSION_COMMAND
+          npm publish
         env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+
+      - name: Push Version Changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add package.json package-lock.json
+          git commit -m "chore: bump version for ${{ github.ref_name }} branch [skip publish]"
+          git push origin HEAD:${{ github.ref_name }}
