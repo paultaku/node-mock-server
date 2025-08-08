@@ -42,9 +42,10 @@ jobs:
           registry-url: https://registry.npmjs.org/
       - run: npm ci
 
-      - name: Get Git Tag Version
-        id: get_tag
-        run: echo "TAG_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+      - name: Configure Git
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
 
       - name: Determine Version Strategy
         id: version_strategy
@@ -54,7 +55,7 @@ jobs:
             echo "VERSION_COMMAND=npm version patch --no-git-tag-version" >> $GITHUB_ENV
           else
             echo "VERSION_STRATEGY=prerelease" >> $GITHUB_ENV
-            echo "VERSION_COMMAND=npm version prerelease --preid=rc --git-tag-version" >> $GITHUB_ENV
+            echo "VERSION_COMMAND=npm version prerelease --preid=rc --no-git-tag-version" >> $GITHUB_ENV
           fi
 
       - name: Update Version and Publish
@@ -68,13 +69,17 @@ jobs:
 
       - name: Show Version Changes
         run: |
-          git config --global user.email "action@github.com"
-          git config --global user.name "GitHub Action"
           echo "=== Version Update Summary ==="
           echo "Branch: ${{ github.ref_name }}"
           echo "Version Strategy: $VERSION_STRATEGY"
           echo "Updated package.json version:"
           cat package.json | grep '"version"'
+          echo ""
+          echo "=== Git Status ==="
+          git status
+          echo ""
+          echo "=== Changed Files ==="
+          git diff --name-only
           echo ""
           echo "=== Next Steps ==="
           echo "1. Review the version changes in package.json"
