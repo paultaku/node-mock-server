@@ -15,11 +15,11 @@ function sanitizeFileName(name: string): string {
     .substring(0, 100); // Limit length
 }
 
-// 递归生成 mock 数据
+// Recursively generate mock data
 function generateMockDataFromSchema(schema: any, components: any): any {
   if (!schema) return null;
 
-  // 处理 $ref
+  // Handle $ref
   if (schema.$ref) {
     const refPath = schema.$ref.replace(/^#\//, "").split("/");
     let ref = components;
@@ -34,7 +34,7 @@ function generateMockDataFromSchema(schema: any, components: any): any {
     return generateMockDataFromSchema(ref, components);
   }
 
-  // 优先 example
+  // Prefer example when present
   if (schema.example !== undefined) return schema.example;
 
   // type: object
@@ -82,7 +82,7 @@ function generateMockDataFromSchema(schema: any, components: any): any {
   return null;
 }
 
-// 生成默认的响应文件
+// Generate default response templates
 function generateDefaultResponses(): Record<string, any> {
   return {
     "200": {
@@ -151,24 +151,24 @@ export async function generateMockFromSwagger(
   try {
     console.log(`Reading Swagger file: ${swaggerPath}`);
 
-    // 读取 swagger yaml
+    // Read swagger yaml
     const raw = await fs.readFile(swaggerPath, "utf-8");
     const doc = yaml.parse(raw);
 
-    // 类型校验
+    // Type validation
     const swagger: SwaggerDoc = SwaggerDocSchema.parse(doc);
     const components = swagger.components || {};
 
     console.log(`Processing ${Object.keys(swagger.paths).length} paths...`);
 
-    // 遍历 paths
+    // Iterate over paths
     for (const [apiPath, methods] of Object.entries(swagger.paths)) {
       for (const [method, operation] of Object.entries<any>(
         methods as Record<string, any>
       )) {
         const methodUpper = method.toUpperCase();
 
-        // 跳过非HTTP方法
+        // Skip non-HTTP methods
         if (
           ![
             "GET",
@@ -183,14 +183,14 @@ export async function generateMockFromSwagger(
           continue;
         }
 
-        // 构建目录路径
+        // Build directory path
         const pathParts = apiPath.replace(/^\//, "").split("/");
         const safePathParts = pathParts.map((part) => {
-          // 保持路径参数格式 {paramName}
+          // Keep path parameter format {paramName}
           if (part.startsWith("{") && part.endsWith("}")) {
             return part;
           }
-          // 其他部分进行安全处理
+          // Sanitize other parts
           return sanitizeFileName(part);
         });
 
@@ -203,7 +203,7 @@ export async function generateMockFromSwagger(
 
         console.log(`Generated directory: ${endpointDir}`);
 
-        // 处理响应
+        // Handle responses
         const responses = operation.responses || generateDefaultResponses();
 
         for (const [status, resp] of Object.entries<any>(responses)) {
@@ -214,15 +214,15 @@ export async function generateMockFromSwagger(
           const fileName = `${desc}-${status}.json`;
           const filePath = path.join(endpointDir, fileName);
 
-          // 生成 mock 数据
+          // Generate mock data
           let mockBody = {};
 
-          // 只处理 application/json
+          // Only handle application/json
           const content = resp.content?.["application/json"];
           if (content && content.schema) {
             mockBody = generateMockDataFromSchema(content.schema, components);
           } else {
-            // 如果没有schema，生成默认响应
+            // If no schema, generate default response
             mockBody = {
               success: status === "200",
               message: resp.description || "Response",
@@ -248,5 +248,5 @@ export async function generateMockFromSwagger(
   }
 }
 
-// 为了兼容性保留 CommonJS 导出
+// Keep CommonJS export for compatibility
 module.exports = { generateMockFromSwagger };

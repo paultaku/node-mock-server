@@ -3,25 +3,25 @@ import path from "path";
 
 export interface StatusJson {
   selected: string;
-  delayMillisecond?: number; // 可选延迟字段，单位毫秒
+  delayMillisecond?: number; // Optional delay field, in milliseconds
 }
 
 const DEFAULT_MOCK_FILE = "successful-operation-200.json";
 
 /**
- * 获取 status.json 路径
- * @param mockRoot mock 根目录
- * @param endpointPath 形如 /pet/{petId}
- * @param method HTTP 方法（GET/POST/...）
+ * Get the path to status.json
+ * @param mockRoot mock root directory
+ * @param endpointPath like /pet/{petId}
+ * @param method HTTP method (GET/POST/...)
  */
 export function getStatusJsonPath(mockRoot: string, endpointPath: string, method: string): string {
   return path.join(mockRoot, ...endpointPath.replace(/^\//, "").split("/"), method.toUpperCase(), "status.json");
 }
 
 /**
- * 读取 status.json
- * @param statusPath status.json 文件路径
- * @returns StatusJson 对象或 null
+ * Read status.json
+ * @param statusPath status.json file path
+ * @returns StatusJson object or null
  */
 export async function readStatusJson(statusPath: string): Promise<StatusJson | null> {
   try {
@@ -36,18 +36,18 @@ export async function readStatusJson(statusPath: string): Promise<StatusJson | n
 }
 
 /**
- * 写入 status.json（原子写入）
- * @param statusPath status.json 文件路径
- * @param selected 选中的 mock 文件名
+ * Write status.json (atomic write)
+ * @param statusPath status.json file path
+ * @param selected selected mock filename
  */
 export async function writeStatusJson(statusPath: string, selected: string): Promise<void> {
   await fs.writeJson(statusPath, { selected }, { spaces: 2 });
 }
 
 /**
- * 初始化所有 endpoint 的 mock 选择状态
- * @param mockRoot mock 根目录
- * @param templates 所有 endpoint 模板数组
+ * Initialize selected mock status for all endpoints
+ * @param mockRoot mock root directory
+ * @param templates all endpoint templates array
  * @returns Map<stateKey, selectedMockFile>
  */
 export async function loadAllStatusJson(mockRoot: string, templates: string[][]): Promise<Map<string, string>> {
@@ -55,7 +55,7 @@ export async function loadAllStatusJson(mockRoot: string, templates: string[][])
   for (const template of templates) {
     const method = template[template.length - 1] || "";
     const endpointPath = "/" + template.slice(0, -1).join("/");
-    if (!method) continue; // 跳过无效 method
+    if (!method) continue; // Skip invalid method
     const statusPath = getStatusJsonPath(mockRoot, endpointPath, method);
     const status = await readStatusJson(statusPath);
     if (status && status.selected) {

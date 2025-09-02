@@ -1,10 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { useEndpoints } from "../hooks/useEndpoints";
 import { StatsComponent } from "./Stats";
 import { EndpointCard } from "./EndpointCard";
+import { EndpointList } from "./EndpointList";
+import { ViewToggle, ViewMode } from "./ViewToggle";
 import { Stats } from "../types";
 
 export const App: React.FC = () => {
+  const [currentView, setCurrentView] = useState<ViewMode>("gallery");
+
   const {
     endpoints,
     loading,
@@ -108,16 +112,44 @@ export const App: React.FC = () => {
         {/* Stats */}
         <StatsComponent stats={stats} />
 
-        {/* Endpoints Grid */}
+        {/* View Toggle and Endpoints Display */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">API Endpoints</h2>
+            <ViewToggle
+              currentView={currentView}
+              onViewChange={setCurrentView}
+            />
+          </div>
+        </div>
+
+        {/* Endpoints Display */}
         {endpoints.length > 0 ? (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {endpoints.map((endpoint, index) => (
-              <EndpointCard
-                key={`${endpoint.path}-${endpoint.method}-${index}`}
-                endpoint={endpoint}
-                delayInput={
-                  delayInputs[`${endpoint.path}|${endpoint.method}`] || ""
-                }
+          currentView === "gallery" ? (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 view-transition view-fade-in">
+              {endpoints.map((endpoint, index) => (
+                <EndpointCard
+                  key={`${endpoint.path}-${endpoint.method}-${index}`}
+                  endpoint={endpoint}
+                  delayInput={
+                    delayInputs[`${endpoint.path}|${endpoint.method}`] || ""
+                  }
+                  onMockChange={setMockResponse}
+                  onDelayChange={(path, method, value) => {
+                    setDelayInputs((prev) => ({
+                      ...prev,
+                      [`${path}|${method}`]: value,
+                    }));
+                  }}
+                  onDelaySave={setDelay}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="view-transition view-slide-up">
+              <EndpointList
+                endpoints={endpoints}
+                delayInputs={delayInputs}
                 onMockChange={setMockResponse}
                 onDelayChange={(path, method, value) => {
                   setDelayInputs((prev) => ({
@@ -127,8 +159,8 @@ export const App: React.FC = () => {
                 }}
                 onDelaySave={setDelay}
               />
-            ))}
-          </div>
+            </div>
+          )
         ) : (
           <div className="text-center py-12">
             <div className="text-gray-400 mb-4">
@@ -150,7 +182,7 @@ export const App: React.FC = () => {
               No Endpoints Found
             </h2>
             <p className="text-gray-500">
-              Please ensure there are generated mock files in the mock directory
+              Please ensure mock files are generated in the mock directory
             </p>
           </div>
         )}

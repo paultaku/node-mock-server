@@ -50,7 +50,7 @@ export const EndpointCard: React.FC<EndpointCardProps> = ({
   const hasChanges = delayInput !== currentDelay.toString();
 
   return (
-    <div className="bg-white rounded-lg p-6 shadow-md hover:shadow-lg transition-all duration-200 animate-slide-up">
+    <div className="bg-white rounded-lg p-6 shadow-md hover:shadow-lg transition-all duration-200 animate-slide-up border border-gray-100">
       <div className="flex items-center mb-4">
         <span
           className={`px-3 py-1 rounded-full text-sm font-bold mr-4 ${getMethodColor(
@@ -59,25 +59,55 @@ export const EndpointCard: React.FC<EndpointCardProps> = ({
         >
           {endpoint.method}
         </span>
-        <span className="font-mono text-lg text-gray-800 flex-1">
+        <span className="font-mono text-lg text-gray-800 flex-1 break-all">
           {endpoint.path}
         </span>
-        <div
-          className={`w-3 h-3 rounded-full ${getStatusColor(
-            endpoint.currentMock
-          )}`}
-        ></div>
+        <div className="flex items-center space-x-2">
+          <div
+            className={`w-3 h-3 rounded-full ${getStatusColor(
+              endpoint.currentMock
+            )}`}
+          ></div>
+          <span className="text-xs text-gray-500">
+            {endpoint.availableMocks.length} responses
+          </span>
+        </div>
       </div>
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Current Mock Response:
-          </label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Current Mock Response:
+            </label>
+            <span
+              className={`text-xs px-2 py-1 rounded-full ${
+                endpoint.currentMock.includes("200")
+                  ? "bg-success-100 text-success-800"
+                  : endpoint.currentMock.includes("400") ||
+                    endpoint.currentMock.includes("404") ||
+                    endpoint.currentMock.includes("500")
+                  ? "bg-error-100 text-error-800"
+                  : "bg-warning-100 text-warning-800"
+              }`}
+            >
+              {endpoint.currentMock.includes("200")
+                ? "Success"
+                : endpoint.currentMock.includes("400") ||
+                  endpoint.currentMock.includes("404") ||
+                  endpoint.currentMock.includes("500")
+                ? "Error"
+                : "Warning"}
+            </span>
+          </div>
           <select
             value={endpoint.currentMock}
             onChange={(e) =>
-              onMockChange(endpoint.path, endpoint.method, (e.target as HTMLSelectElement).value)
+              onMockChange(
+                endpoint.path,
+                endpoint.method,
+                (e.target as HTMLSelectElement).value
+              )
             }
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
@@ -91,7 +121,7 @@ export const EndpointCard: React.FC<EndpointCardProps> = ({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Response Delay (ms):
+            Response delay (ms):
           </label>
           <div className="flex items-center space-x-2">
             <input
@@ -101,7 +131,11 @@ export const EndpointCard: React.FC<EndpointCardProps> = ({
               step={100}
               value={delayInput}
               onChange={(e) =>
-                onDelayChange(endpoint.path, endpoint.method, (e.target as HTMLInputElement).value)
+                onDelayChange(
+                  endpoint.path,
+                  endpoint.method,
+                  (e.target as HTMLInputElement).value
+                )
               }
               className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="0"

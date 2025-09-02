@@ -1,7 +1,7 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
-// 根据环境变量确定模式
+// Determine mode based on environment variables
 const isProduction = process.env.NODE_ENV === "production";
 const isDevelopment =
   process.env.NODE_ENV === "development" || !process.env.NODE_ENV;

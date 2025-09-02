@@ -23,7 +23,7 @@ export class MockServerManager {
   }
 
   /**
-   * 启动服务器
+   * Start server
    */
   async start(): Promise<void> {
     if (this.isRunning) {
@@ -47,7 +47,7 @@ export class MockServerManager {
   }
 
   /**
-   * 停止服务器
+   * Stop server
    */
   stop(): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -79,7 +79,7 @@ export class MockServerManager {
   }
 
   /**
-   * 重启服务器
+   * Restart server
    */
   async restart(): Promise<void> {
     console.log("Restarting server...");
@@ -89,28 +89,28 @@ export class MockServerManager {
   }
 
   /**
-   * 检查服务器是否正在运行
+   * Check if server is running
    */
   isServerRunning(): boolean {
     return this.isRunning;
   }
 
   /**
-   * 获取服务器端口
+   * Get server port
    */
   getPort(): number {
     return this.port;
   }
 
   /**
-   * 获取 mock 根目录
+   * Get mock root directory
    */
   getMockRoot(): string {
     return this.mockRoot;
   }
 
   /**
-   * 获取服务器状态信息
+   * Get server status information
    */
   getStatus(): {
     isRunning: boolean;
@@ -127,12 +127,12 @@ export class MockServerManager {
   }
 }
 
-// 创建多个服务器实例的管理器
+// Manager for creating multiple server instances
 export class MultiServerManager {
   private servers: Map<number, MockServerManager> = new Map();
 
   /**
-   * 创建并启动一个服务器
+   * Create and start a server
    */
   async createServer(
     port: number,
@@ -156,7 +156,7 @@ export class MultiServerManager {
   }
 
   /**
-   * 停止并移除一个服务器
+   * Stop and remove a server
    */
   async removeServer(port: number): Promise<void> {
     const server = this.servers.get(port);
@@ -169,7 +169,7 @@ export class MultiServerManager {
   }
 
   /**
-   * 停止所有服务器
+   * Stop all servers
    */
   async stopAllServers(): Promise<void> {
     const stopPromises = Array.from(this.servers.values()).map((server) =>
@@ -180,7 +180,7 @@ export class MultiServerManager {
   }
 
   /**
-   * 获取所有服务器状态
+   * Get status of all servers
    */
   getAllServerStatus(): Array<{
     port: number;
@@ -193,21 +193,21 @@ export class MultiServerManager {
   }
 
   /**
-   * 获取特定端口的服务器
+   * Get server by port
    */
   getServer(port: number): MockServerManager | undefined {
     return this.servers.get(port);
   }
 
   /**
-   * 检查端口是否被使用
+   * Check whether a port is in use
    */
   isPortInUse(port: number): boolean {
     return this.servers.has(port);
   }
 }
 
-// 导出便捷函数
+// Export convenience helpers
 export function createMockServer(port: number = 3000): MockServerManager {
   return new MockServerManager({ port, autoStart: true });
 }

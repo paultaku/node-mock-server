@@ -2,7 +2,7 @@ const path = require("path");
 const nodeExternals = require("webpack-node-externals");
 const ShebangPlugin = require("webpack-shebang-plugin");
 
-// 根据环境变量确定模式
+// Determine mode based on environment variables
 const isProduction = process.env.NODE_ENV === "production";
 const isDevelopment =
   process.env.NODE_ENV === "development" || !process.env.NODE_ENV;
@@ -21,7 +21,7 @@ module.exports = {
     path: path.resolve(__dirname, "dist"),
     filename: "[name].js",
     libraryTarget: "commonjs2",
-    clean: isProduction, // 生产环境清理，开发环境不清理
+    clean: isProduction, // Clean in production, keep in development
   },
   resolve: {
     extensions: [".ts", ".js", ".json"],
@@ -36,11 +36,11 @@ module.exports = {
             options: {
               configFile: "tsconfig.json",
               compilerOptions: {
-                declaration: isProduction, // 生产环境生成声明文件
-                declarationMap: isProduction, // 生产环境生成声明映射
-                sourceMap: true, // 都生成源码映射
+                declaration: isProduction, // Generate declarations in production
+                declarationMap: isProduction, // Generate declaration maps in production
+                sourceMap: true, // Always generate source maps
               },
-              transpileOnly: isDevelopment, // 开发环境只转译，不类型检查
+              transpileOnly: isDevelopment, // In dev, transpile only, skip type check
             },
           },
         ],
@@ -58,7 +58,7 @@ module.exports = {
     splitChunks: false,
   },
   devtool: isProduction ? "source-map" : "eval-source-map",
-  // 开发环境特有的配置
+  // Development-only configuration
   ...(isDevelopment && {
     watch: true,
     watchOptions: {

@@ -35,7 +35,7 @@ export const useEndpoints = () => {
       await apiService.setMockResponse(path, method, mockFile);
       setMessage(`Successfully updated mock response for ${method} ${path}`);
 
-      // 更新本地状态
+      // Update local state
       setEndpoints((prev) =>
         prev.map((endpoint) =>
           endpoint.path === path && endpoint.method === method
@@ -63,7 +63,7 @@ export const useEndpoints = () => {
       setMessage(
         `Successfully set delay for ${method} ${path} to ${delayMillisecond}ms`
       );
-      fetchEndpoints(); // 设置后刷新
+      fetchEndpoints(); // Refresh after setting
       setTimeout(() => setMessage(null), 3000);
     } catch (err) {
       setError(
@@ -78,7 +78,7 @@ export const useEndpoints = () => {
   }, []);
 
   useEffect(() => {
-    // endpoints 变化时同步 delayInputs
+    // Sync delayInputs when endpoints change
     const map: Record<string, string> = {};
     endpoints.forEach((e) => {
       map[`${e.path}|${e.method}`] =
