@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from "commander";
-import { generateMockFromSwagger } from "../mock-generator";
+import { generateMockFromSwagger } from "../domains/mock-generation";
 import path from "path";
 
 const program = new Command();

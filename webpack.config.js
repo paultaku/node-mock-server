@@ -14,7 +14,6 @@ module.exports = {
     index: "./src/index.ts",
     server: "./src/server.ts",
     "cli/generate-mock": "./src/cli/generate-mock.ts",
-    "mock-generator": "./src/mock-generator.ts",
     "status-manager": "./src/status-manager.ts",
   },
   output: {

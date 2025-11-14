@@ -12,7 +12,7 @@ export {
 } from "./mock-server-manager";
 
 // Mock generation
-export { generateMockFromSwagger } from "./mock-generator";
+export { generateMockFromSwagger } from "./domains/mock-generation";
 
 // Types
 export type { MockServerConfig } from "./mock-server-manager";
