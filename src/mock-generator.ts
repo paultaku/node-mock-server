@@ -2,7 +2,7 @@ import * as fs from "fs-extra";
 import * as yaml from "yaml";
 import * as path from "path";
 import { z } from "zod";
-import { SwaggerDocSchema, SwaggerDoc } from "./types/swagger";
+import { SwaggerDocSchema, SwaggerDoc } from "./shared/types/swagger-types";
 
 // Safe filename generation
 function sanitizeFileName(name: string): string {

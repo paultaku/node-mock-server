@@ -16,4 +16,4 @@ export { generateMockFromSwagger } from "./mock-generator";
 
 // Types
 export type { MockServerConfig } from "./mock-server-manager";
-export type { SwaggerDoc } from "./types/swagger";
+export type { SwaggerDoc } from "./shared/types/swagger-types";
