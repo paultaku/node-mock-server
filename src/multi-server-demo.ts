@@ -2,7 +2,7 @@ import {
   MultiServerManager,
   MockServerManager,
   createMultiServerManager,
-} from "./mock-server-manager";
+} from "./domains/server-runtime";
 
 /**
  * Multi-server management demo
@@ -70,7 +70,7 @@ class MultiServerDemo {
       console.log("📊 Server status check:", new Date().toLocaleTimeString());
 
       const statuses = this.multiManager.getAllServerStatus();
-      statuses.forEach(({ port, status }) => {
+      statuses.forEach(({ port, status }: { port: number; status: any }) => {
         const statusIcon = status.isRunning ? "🟢" : "🔴";
         console.log(
           `${statusIcon} Port ${port}: ${
@@ -250,7 +250,7 @@ class MultiServerDemo {
    */
   private printAllServerStatus() {
     const statuses = this.multiManager.getAllServerStatus();
-    statuses.forEach(({ port, status }) => {
+    statuses.forEach(({ port, status }: { port: number; status: any }) => {
       const statusIcon = status.isRunning ? "🟢" : "🔴";
       console.log(
         `${statusIcon} Port ${port}: ${status.url} - ${
@@ -312,7 +312,7 @@ export async function quickStartMultipleServers(
 
     console.log("\n📊 All server statuses:");
     const statuses = multiManager.getAllServerStatus();
-    statuses.forEach(({ port, status }) => {
+    statuses.forEach(({ port, status }: { port: number; status: any }) => {
       console.log(`  🟢 Port ${port}: ${status.url}`);
     });
 

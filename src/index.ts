@@ -9,11 +9,11 @@ export {
   MultiServerManager,
   createMockServer,
   createMultiServerManager,
-} from "./mock-server-manager";
+} from "./domains/server-runtime";
 
 // Mock generation
 export { generateMockFromSwagger } from "./domains/mock-generation";
 
 // Types
-export type { MockServerConfig } from "./mock-server-manager";
+export type { MockServerConfig } from "./domains/server-runtime";
 export type { SwaggerDoc } from "./shared/types/swagger-types";

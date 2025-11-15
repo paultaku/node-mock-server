@@ -1,5 +1,12 @@
+/**
+ * Server Manager
+ *
+ * Manages mock server lifecycle (start, stop, restart).
+ * Provides both single-server and multi-server management.
+ */
+
 import { Server } from "http";
-import { startMockServer } from "./server";
+import { startMockServer } from "./mock-server";
 
 export interface MockServerConfig {
   port: number;
@@ -7,6 +14,10 @@ export interface MockServerConfig {
   autoStart?: boolean;
 }
 
+/**
+ * Mock Server Manager
+ * Manages the lifecycle of a single mock server instance
+ */
 export class MockServerManager {
   private server: Server | null = null;
   private port: number;
@@ -127,7 +138,10 @@ export class MockServerManager {
   }
 }
 
-// Manager for creating multiple server instances
+/**
+ * Multi Server Manager
+ * Manages multiple mock server instances on different ports
+ */
 export class MultiServerManager {
   private servers: Map<number, MockServerManager> = new Map();
 
@@ -207,11 +221,16 @@ export class MultiServerManager {
   }
 }
 
-// Export convenience helpers
+/**
+ * Factory function to create a mock server with auto-start
+ */
 export function createMockServer(port: number = 3000): MockServerManager {
   return new MockServerManager({ port, autoStart: true });
 }
 
+/**
+ * Factory function to create a multi-server manager
+ */
 export function createMultiServerManager(): MultiServerManager {
   return new MultiServerManager();
 }
