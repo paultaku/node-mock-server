@@ -4,10 +4,13 @@ import { StatsComponent } from "./Stats";
 import { EndpointCard } from "./EndpointCard";
 import { EndpointList } from "./EndpointList";
 import { ViewToggle, ViewMode } from "./ViewToggle";
+import { AddEndpointButton } from "./AddEndpointButton";
+import { AddEndpointModal } from "./AddEndpointModal";
 import { Stats } from "../types";
 
 export const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewMode>("gallery");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const {
     endpoints,
@@ -101,13 +104,25 @@ export const App: React.FC = () => {
           </div>
         )}
 
-        {/* Refresh Button */}
-        <button
-          onClick={fetchEndpoints}
-          className="bg-primary-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors mb-8"
-        >
-          Refresh Endpoints
-        </button>
+        {/* Action Buttons */}
+        <div className="flex gap-4 mb-8">
+          <AddEndpointButton onClick={() => setIsModalOpen(true)} />
+          <button
+            onClick={fetchEndpoints}
+            className="bg-primary-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
+          >
+            Refresh Endpoints
+          </button>
+        </div>
+
+        {/* Add Endpoint Modal */}
+        <AddEndpointModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSuccess={() => {
+            fetchEndpoints(); // Refresh the endpoint list
+          }}
+        />
 
         {/* Stats */}
         <StatsComponent stats={stats} />

@@ -21,7 +21,7 @@ This document breaks down the implementation of separate PUT and DELETE statisti
 - [ ] T002 Update jest.config.js testEnvironment from "node" to "jsdom" in /Users/paultaku/Projects/@paultaku/node-mock-server/jest.config.js
 - [ ] T003 Add tsx support to jest.config.js transform config (update pattern to "^.+\\.tsx?$") in /Users/paultaku/Projects/@paultaku/node-mock-server/jest.config.js
 - [ ] T004 Add setupFilesAfterEnv to jest.config.js pointing to tests/setup.ts in /Users/paultaku/Projects/@paultaku/node-mock-server/jest.config.js
-- [ ] T005 Update collectCoverageFrom in jest.config.js to include tsx files ("src/**/*.{ts,tsx}") in /Users/paultaku/Projects/@paultaku/node-mock-server/jest.config.js
+- [ ] T005 Update collectCoverageFrom in jest.config.js to include tsx files ("src/\*_/_.{ts,tsx}") in /Users/paultaku/Projects/@paultaku/node-mock-server/jest.config.js
 - [ ] T006 Update moduleFileExtensions in jest.config.js to include "tsx" in /Users/paultaku/Projects/@paultaku/node-mock-server/jest.config.js
 - [ ] T007 Create tests/setup.ts with @testing-library/jest-dom import in /Users/paultaku/Projects/@paultaku/node-mock-server/tests/setup.ts
 - [ ] T008 [P] Create tests/frontend/ directory structure in /Users/paultaku/Projects/@paultaku/node-mock-server/tests/frontend/
@@ -29,6 +29,7 @@ This document breaks down the implementation of separate PUT and DELETE statisti
 - [ ] T010 Verify test setup by running `npm test` (should find no tests yet)
 
 **Completion Criteria**:
+
 - ✅ Jest configured for React component testing (jsdom environment)
 - ✅ React Testing Library dependencies installed
 - ✅ Test directory structure created
@@ -84,6 +85,7 @@ This document breaks down the implementation of separate PUT and DELETE statisti
 - [ ] T031 [US1] Test acceptance scenario 3: Remove all PUT endpoints, verify card shows "0"
 
 **Story Completion Criteria**:
+
 - ✅ All PUT tests passing (T012-T015)
 - ✅ PUT card renders separately with amber color
 - ✅ PUT count displays correctly (not combined)
@@ -139,6 +141,7 @@ This document breaks down the implementation of separate PUT and DELETE statisti
 - [ ] T051 [US2] Test acceptance scenario 3: Remove all DELETE endpoints, verify card shows "0"
 
 **Story Completion Criteria**:
+
 - ✅ All DELETE tests passing (T032-T035)
 - ✅ DELETE card renders separately with red color
 - ✅ DELETE count displays correctly (not combined)
@@ -192,6 +195,7 @@ This document breaks down the implementation of separate PUT and DELETE statisti
 - [ ] T068 [US3] Test acceptance scenario 3: Add/remove endpoint, verify only that method's card updates (not all cards)
 
 **Story Completion Criteria**:
+
 - ✅ All visual consistency tests passing (T052-T055)
 - ✅ No combined PUT/DELETE label exists (FR-005 verified)
 - ✅ All cards use consistent styling (FR-006, FR-007)
@@ -243,6 +247,7 @@ This document breaks down the implementation of separate PUT and DELETE statisti
 - [ ] T090 Run `npm test && npm run build` - confirm clean test and build output
 
 **Phase Completion Criteria**:
+
 - ✅ All edge cases handled and tested
 - ✅ 100% test pass rate
 - ✅ >80% code coverage on Stats component
@@ -261,6 +266,7 @@ This document breaks down the implementation of separate PUT and DELETE statisti
 **Recommended MVP**: User Story 1 + User Story 2 (Both P1)
 
 **Rationale**:
+
 - Both P1 stories required for "independent calculation" feature
 - Together they deliver complete value proposition
 - User Story 3 enhances but doesn't fundamentally change core value
@@ -271,11 +277,13 @@ This document breaks down the implementation of separate PUT and DELETE statisti
 ### Incremental Delivery Plan
 
 1. **Increment 1** (MVP): Setup + US1 + US2 → Deliverable: Independent PUT/DELETE cards
+
    - Tasks: T001-T051
    - Delivers: FR-001 through FR-010 (except visual consistency verification)
    - Achieves: SC-001, SC-002, SC-004, SC-005
 
 2. **Increment 2** (Enhancement): US3 → Deliverable: Visual consistency and responsive layout
+
    - Tasks: T052-T068
    - Delivers: Complete visual consistency (FR-005, FR-006, FR-007)
    - Achieves: SC-003, SC-006
@@ -290,20 +298,25 @@ This document breaks down the implementation of separate PUT and DELETE statisti
 Tasks marked with [P] can be executed in parallel:
 
 **Setup Phase** (T001-T010):
+
 - T008, T009 can run in parallel (different directories)
 
 **User Story 1** (T011-T031):
+
 - T012-T015 can be written in parallel (independent tests)
 - T025, T026, T027 can run in parallel (different verification types)
 
 **User Story 2** (T032-T051):
+
 - T032-T035 can be written in parallel (independent tests)
 - T045, T046, T047 can run in parallel (different verification types)
 
 **User Story 3** (T052-T068):
+
 - T052-T055 can be written in parallel (independent tests)
 
 **Polish Phase** (T069-T090):
+
 - T069, T070, T071 can be written in parallel (independent edge case tests)
 - T081, T082, T083 can run in parallel (code quality checks)
 
@@ -314,14 +327,17 @@ Tasks marked with [P] can be executed in parallel:
 ### Dependencies
 
 **Foundational** (must complete first):
+
 - T001-T010: Test infrastructure setup (blocks all test tasks)
 
 **User Story Dependencies**:
+
 - US1 (T011-T031): Depends on Setup (T001-T010)
 - US2 (T032-T051): Depends on Setup (T001-T010), can run parallel to US1 tests (T012-T015) but implementation depends on US1 completion for grid layout change
 - US3 (T052-T068): Depends on US1 and US2 completion (verifies both are consistent)
 
 **Polish Dependencies**:
+
 - T069-T090: Depends on all user stories complete
 
 ### Recommended Execution Path
@@ -380,6 +396,7 @@ Tasks marked with [P] can be executed in parallel:
 **Verification Tasks**: 46 (quality assurance)
 
 **Tasks by User Story**:
+
 - Setup: 10 tasks (T001-T010)
 - US1 (P1): 21 tasks (T011-T031)
 - US2 (P1): 20 tasks (T032-T051)

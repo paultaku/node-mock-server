@@ -27,6 +27,12 @@ import {
   mockFileExists,
 } from "./response-renderer";
 import { writeJson, fileExists } from "../../shared/file-system";
+import {
+  CreateEndpointRequestSchema,
+  formatValidationErrors,
+  HTTP_STATUS,
+} from "../../shared/types/validation-schemas";
+import { generateEndpointFiles } from "./endpoint-file-generator";
 
 const DEFAULT_MOCK_ROOT = path.resolve(__dirname, "../../../mock");
 const DEFAULT_MOCK_FILE = "successful-operation-200.json";
@@ -104,6 +110,66 @@ export function createApp(
       res
         .status(500)
         .json({ error: "Failed to get endpoints", detail: String(error) });
+    }
+  });
+
+  // API endpoint: create new mock endpoint
+  app.post("/_mock/endpoints", async (req: Request, res: Response) => {
+    try {
+      // Validate request with Zod
+      const validationResult = CreateEndpointRequestSchema.safeParse(req.body);
+
+      if (!validationResult.success) {
+        return res
+          .status(HTTP_STATUS.BAD_REQUEST)
+          .json(formatValidationErrors(validationResult.error));
+      }
+
+      const { path: apiPath, method } = validationResult.data;
+
+      // Check for duplicates
+      const pathSegments = apiPath.substring(1).split("/");
+      const endpointDir = path.join(mockRoot, ...pathSegments, method.toUpperCase());
+
+      if (await fileExists(endpointDir)) {
+        return res.status(HTTP_STATUS.CONFLICT).json({
+          error: "Endpoint already exists",
+          existingEndpoint: {
+            path: apiPath,
+            method,
+            mockDirectory: endpointDir,
+          },
+        });
+      }
+
+      // Generate files
+      const result = await generateEndpointFiles({
+        mockRoot,
+        path: apiPath,
+        method,
+      });
+
+      // Update in-memory state
+      const stateKey = getMockStateKey(apiPath, method);
+      mockStates.set(stateKey, "success-200.json");
+
+      // Return success
+      return res.status(HTTP_STATUS.CREATED).json({
+        success: true,
+        message: "Endpoint created successfully",
+        endpoint: {
+          path: apiPath,
+          method,
+          filesCreated: result.filesCreated,
+          availableAt: `http://localhost:3000${apiPath.replace(/{[^}]+}/g, "123")}`,
+          mockDirectory: result.mockDirectory,
+        },
+      });
+    } catch (error) {
+      return res.status(HTTP_STATUS.INTERNAL_ERROR).json({
+        error: "Failed to create endpoint",
+        detail: String(error),
+      });
     }
   });
 
