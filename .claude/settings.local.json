@@ -1,7 +1,17 @@
 {
   "permissions": {
     "allow": [
-      "All"
+      "All",
+      "Bash(.specify/scripts/bash/setup-plan.sh:*)",
+      "Bash(.specify/scripts/bash/update-agent-context.sh:*)",
+      "Bash(.specify/scripts/bash/check-prerequisites.sh:*)",
+      "Bash(if [ -d \"/Users/paultaku/Projects/@paultaku/node-mock-server/specs/004-scenario-management/checklists\" ])",
+      "Bash(then ls -la \"/Users/paultaku/Projects/@paultaku/node-mock-server/specs/004-scenario-management/checklists\")",
+      "Bash(else echo \"No checklists directory found\")",
+      "Bash(fi)",
+      "Bash(git rev-parse:*)",
+      "Bash(npm test:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

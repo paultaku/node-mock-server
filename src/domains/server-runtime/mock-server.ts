@@ -30,9 +30,26 @@ import { writeJson, fileExists } from "../../shared/file-system";
 import {
   CreateEndpointRequestSchema,
   formatValidationErrors,
+  formatScenarioValidationErrors,
   HTTP_STATUS,
 } from "../../shared/types/validation-schemas";
 import { generateEndpointFiles } from "./endpoint-file-generator";
+import { ScenarioManager } from "./scenario-manager";
+import { ScenarioRepository } from "./scenario-repository";
+import { ActiveScenarioTracker } from "./active-scenario-tracker";
+import { ScenarioApplicator } from "./scenario-applicator";
+import {
+  CreateScenarioRequest,
+  UpdateScenarioRequest,
+  DuplicateScenarioError,
+  EmptyScenarioError,
+  ScenarioNotFoundError,
+  DuplicateEndpointError,
+} from "../../shared/types/scenario-types";
+import {
+  CreateScenarioRequestSchema,
+  UpdateScenarioRequestSchema,
+} from "../../shared/types/validation-schemas";
 
 const DEFAULT_MOCK_ROOT = path.resolve(__dirname, "../../../mock");
 const DEFAULT_MOCK_FILE = "successful-operation-200.json";
@@ -309,6 +326,220 @@ export function createApp(
         return res
           .status(500)
           .json({ error: "Failed to set delay", detail: String(error) });
+      }
+    }
+  });
+
+  // ============================================================================
+  // Scenario Management API Endpoints
+  // Feature: 004-scenario-management
+  // ============================================================================
+
+  // Initialize scenario manager
+  const scenarioDir = path.join(mockRoot, "scenario");
+  const scenarioRepository = new ScenarioRepository(scenarioDir);
+  const activeScenarioTracker = new ActiveScenarioTracker(scenarioDir);
+  const scenarioApplicator = new ScenarioApplicator(mockRoot);
+  const scenarioManager = new ScenarioManager(
+    scenarioRepository,
+    activeScenarioTracker,
+    scenarioApplicator
+  );
+
+  // API endpoint: create a new scenario
+  app.post("/_mock/scenarios", async (req: Request, res: Response) => {
+    try {
+      // Validate request with Zod
+      const validationResult = CreateScenarioRequestSchema.safeParse(req.body);
+
+      if (!validationResult.success) {
+        return res
+          .status(HTTP_STATUS.BAD_REQUEST)
+          .json(formatScenarioValidationErrors(validationResult.error));
+      }
+
+      const createRequest = validationResult.data as CreateScenarioRequest;
+
+      // Create scenario using scenario manager
+      const scenario = await scenarioManager.create(createRequest);
+
+      return res.status(HTTP_STATUS.CREATED).json({
+        scenario,
+        message: `Scenario '${scenario.name}' created and activated successfully`,
+      });
+    } catch (error) {
+      if (error instanceof DuplicateScenarioError) {
+        return res.status(HTTP_STATUS.CONFLICT).json({
+          error: error.message,
+        });
+      } else if (error instanceof EmptyScenarioError) {
+        return res.status(HTTP_STATUS.BAD_REQUEST).json({
+          error: error.message,
+        });
+      } else if (error instanceof DuplicateEndpointError) {
+        return res.status(HTTP_STATUS.BAD_REQUEST).json({
+          error: error.message,
+        });
+      } else if (error instanceof z.ZodError) {
+        return res
+          .status(HTTP_STATUS.BAD_REQUEST)
+          .json(formatScenarioValidationErrors(error));
+      } else {
+        return res.status(HTTP_STATUS.INTERNAL_ERROR).json({
+          error: "Failed to create scenario",
+          detail: String(error),
+        });
+      }
+    }
+  });
+
+  // API endpoint: list all scenarios with active indicator
+  app.get("/_mock/scenarios", async (req: Request, res: Response) => {
+    try {
+      const result = await scenarioManager.list();
+
+      return res.json({
+        scenarios: result.scenarios,
+        activeScenario: result.activeScenario,
+      });
+    } catch (error) {
+      return res.status(HTTP_STATUS.INTERNAL_ERROR).json({
+        error: "Failed to list scenarios",
+        detail: String(error),
+      });
+    }
+  });
+
+  // API endpoint: get active scenario
+  app.get("/_mock/scenarios/active", async (req: Request, res: Response) => {
+    try {
+      const activeScenario = await activeScenarioTracker.getActive();
+
+      return res.json({
+        activeScenario,
+        lastUpdated: new Date().toISOString(),
+      });
+    } catch (error) {
+      return res.status(HTTP_STATUS.INTERNAL_ERROR).json({
+        error: "Failed to get active scenario",
+        detail: String(error),
+      });
+    }
+  });
+
+  // API endpoint: get scenario by name
+  app.get("/_mock/scenarios/:name", async (req: Request, res: Response) => {
+    try {
+      const { name } = req.params;
+
+      if (!name) {
+        return res.status(HTTP_STATUS.BAD_REQUEST).json({
+          error: "Scenario name is required",
+        });
+      }
+
+      const scenario = await scenarioManager.get(name);
+
+      return res.json({
+        scenario,
+      });
+    } catch (error) {
+      if (error instanceof ScenarioNotFoundError) {
+        return res.status(404).json({
+          error: error.message,
+        });
+      } else {
+        return res.status(HTTP_STATUS.INTERNAL_ERROR).json({
+          error: "Failed to get scenario",
+          detail: String(error),
+        });
+      }
+    }
+  });
+
+  // API endpoint: update an existing scenario
+  app.put("/_mock/scenarios/:name", async (req: Request, res: Response) => {
+    try {
+      const { name } = req.params;
+
+      if (!name) {
+        return res.status(HTTP_STATUS.BAD_REQUEST).json({
+          error: "Scenario name is required",
+        });
+      }
+
+      // Validate request with Zod
+      const validationResult = UpdateScenarioRequestSchema.safeParse(req.body);
+
+      if (!validationResult.success) {
+        return res
+          .status(HTTP_STATUS.BAD_REQUEST)
+          .json(formatScenarioValidationErrors(validationResult.error));
+      }
+
+      const updateRequest = validationResult.data as UpdateScenarioRequest;
+
+      // Update scenario using scenario manager
+      const scenario = await scenarioManager.update(name, updateRequest);
+
+      return res.json({
+        scenario,
+        message: `Scenario '${scenario.name}' updated successfully`,
+      });
+    } catch (error) {
+      if (error instanceof ScenarioNotFoundError) {
+        return res.status(404).json({
+          error: error.message,
+        });
+      } else if (error instanceof EmptyScenarioError) {
+        return res.status(HTTP_STATUS.BAD_REQUEST).json({
+          error: error.message,
+        });
+      } else if (error instanceof DuplicateEndpointError) {
+        return res.status(HTTP_STATUS.BAD_REQUEST).json({
+          error: error.message,
+        });
+      } else if (error instanceof z.ZodError) {
+        return res
+          .status(HTTP_STATUS.BAD_REQUEST)
+          .json(formatScenarioValidationErrors(error));
+      } else {
+        return res.status(HTTP_STATUS.INTERNAL_ERROR).json({
+          error: "Failed to update scenario",
+          detail: String(error),
+        });
+      }
+    }
+  });
+
+  // API endpoint: delete a scenario
+  app.delete("/_mock/scenarios/:name", async (req: Request, res: Response) => {
+    try {
+      const { name } = req.params;
+
+      if (!name) {
+        return res.status(HTTP_STATUS.BAD_REQUEST).json({
+          error: "Scenario name is required",
+        });
+      }
+
+      // Delete scenario using scenario manager
+      await scenarioManager.delete(name);
+
+      return res.json({
+        success: true,
+        message: `Scenario '${name}' deleted successfully`,
+      });
+    } catch (error) {
+      if (error instanceof ScenarioNotFoundError) {
+        return res.status(404).json({
+          error: error.message,
+        });
+      } else {
+        return res.status(HTTP_STATUS.INTERNAL_ERROR).json({
+          error: "Failed to delete scenario",
+          detail: String(error),
+        });
       }
     }
   });
