@@ -1,0 +1,16 @@
+{
+  "name": "testg",
+  "endpointConfigurations": [
+    {
+      "path": "/pet",
+      "method": "PUT",
+      "selectedMockFile": "invalid-id-supplied-400.json",
+      "delayMillisecond": 0
+    }
+  ],
+  "metadata": {
+    "createdAt": "2025-12-03T01:03:51.648Z",
+    "lastModified": "2025-12-03T01:03:51.648Z",
+    "version": 1
+  }
+}

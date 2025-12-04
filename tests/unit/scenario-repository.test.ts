@@ -176,7 +176,7 @@ describe('ScenarioRepository', () => {
       const result = await repository.findAll();
 
       expect(result).toHaveLength(1);
-      expect(result[0].name).toBe('test-scenario');
+      expect(result[0]?.name).toBe('test-scenario');
     });
 
     it('should skip files that start with underscore', async () => {

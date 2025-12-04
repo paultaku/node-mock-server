@@ -7,6 +7,7 @@ interface ScenarioListProps {
   activeScenario: string | null;
   onView: (name: string) => void;
   onEdit: (name: string) => void;
+  onDelete: (name: string) => void;
 }
 
 /**
@@ -22,6 +23,7 @@ export const ScenarioList: React.FC<ScenarioListProps> = ({
   activeScenario,
   onView,
   onEdit,
+  onDelete,
 }) => {
   if (scenarios.length === 0) {
     return (
@@ -60,6 +62,7 @@ export const ScenarioList: React.FC<ScenarioListProps> = ({
           isActive={scenario.name === activeScenario}
           onView={onView}
           onEdit={onEdit}
+          onDelete={onDelete}
         />
       ))}
     </div>

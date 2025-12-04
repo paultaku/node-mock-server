@@ -42,6 +42,7 @@ describe("ScenarioList", () => {
 
   const mockOnView = jest.fn();
   const mockOnEdit = jest.fn();
+  const mockOnDelete = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -54,6 +55,7 @@ describe("ScenarioList", () => {
         activeScenario="scenario-1"
         onView={mockOnView}
         onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
       />
     );
 
@@ -68,6 +70,7 @@ describe("ScenarioList", () => {
         activeScenario={null}
         onView={mockOnView}
         onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
       />
     );
 
@@ -84,6 +87,7 @@ describe("ScenarioList", () => {
         activeScenario="scenario-1"
         onView={mockOnView}
         onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
       />
     );
 
@@ -98,6 +102,7 @@ describe("ScenarioList", () => {
         activeScenario={null}
         onView={mockOnView}
         onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
       />
     );
 
@@ -111,6 +116,7 @@ describe("ScenarioList", () => {
         activeScenario={null}
         onView={mockOnView}
         onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
       />
     );
 

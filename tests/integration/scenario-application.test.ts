@@ -223,8 +223,8 @@ describe('Scenario Application Integration', () => {
       expect(result.successes).toHaveLength(1);
       expect(result.failures).toHaveLength(1);
       expect(result.successes[0]).toBe('GET /pet/status');
-      expect(result.failures[0].endpoint).toBe('POST /user/login');
-      expect(result.failures[0].error).toContain('not found');
+      expect(result.failures[0]!.endpoint).toBe('POST /user/login');
+      expect(result.failures[0]!.error).toContain('not found');
     });
 
     it('should successfully apply to available endpoints despite some failures', async () => {

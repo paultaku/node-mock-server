@@ -263,7 +263,7 @@ describe('Scenario Persistence Integration', () => {
       const all = await repository.findAll();
 
       expect(all).toHaveLength(1);
-      expect(all[0].name).toBe('scenario-1');
+      expect(all[0]?.name).toBe('scenario-1');
     });
 
     it('should ignore README.md and other non-JSON files', async () => {
@@ -286,7 +286,7 @@ describe('Scenario Persistence Integration', () => {
       const all = await repository.findAll();
 
       expect(all).toHaveLength(1);
-      expect(all[0].name).toBe('scenario-1');
+      expect(all[0]?.name).toBe('scenario-1');
     });
   });
 

@@ -7,6 +7,7 @@ interface ScenarioCardProps {
   isActive: boolean;
   onView: (name: string) => void;
   onEdit: (name: string) => void;
+  onDelete: (name: string) => void;
 }
 
 /**
@@ -22,6 +23,7 @@ export const ScenarioCard: React.FC<ScenarioCardProps> = ({
   isActive,
   onView,
   onEdit,
+  onDelete,
 }) => {
   const endpointCount = scenario.endpointConfigurations.length;
   const endpointText =
@@ -54,6 +56,13 @@ export const ScenarioCard: React.FC<ScenarioCardProps> = ({
           className="flex-1 bg-gray-200 text-gray-800 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
         >
           Edit
+        </button>
+        <button
+          onClick={() => onDelete(scenario.name)}
+          className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
+          title="Delete scenario"
+        >
+          Delete
         </button>
       </div>
     </div>

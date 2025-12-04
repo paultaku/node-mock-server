@@ -104,15 +104,22 @@ export class ScenarioRepository implements IScenarioRepository {
         (file) => file.endsWith('.json') && !file.startsWith('_')
       );
 
-      // Read all scenario files in parallel
-      const scenarios = await Promise.all(
-        scenarioFiles.map(async (file) => {
-          const filePath = path.join(this.scenarioDir, file);
+      // Read all scenario files in parallel, skipping corrupted ones
+      const scenarioPromises = scenarioFiles.map(async (file) => {
+        const filePath = path.join(this.scenarioDir, file);
+        try {
           return (await fs.readJson(filePath)) as Scenario;
-        })
-      );
+        } catch (error) {
+          // Skip corrupted/invalid JSON files
+          console.warn(`[scenario-repository] Skipping corrupted file: ${file}`, error);
+          return null;
+        }
+      });
 
-      return scenarios;
+      const results = await Promise.all(scenarioPromises);
+
+      // Filter out null values (corrupted files)
+      return results.filter((scenario): scenario is Scenario => scenario !== null);
     } catch (error) {
       // Return empty array on read errors
       return [];

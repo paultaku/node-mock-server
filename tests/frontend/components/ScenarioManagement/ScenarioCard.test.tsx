@@ -27,6 +27,7 @@ describe("ScenarioCard", () => {
 
   const mockOnView = jest.fn();
   const mockOnEdit = jest.fn();
+  const mockOnDelete = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -39,6 +40,7 @@ describe("ScenarioCard", () => {
         isActive={false}
         onView={mockOnView}
         onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
       />
     );
 
@@ -52,6 +54,7 @@ describe("ScenarioCard", () => {
         isActive={true}
         onView={mockOnView}
         onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
       />
     );
 
@@ -65,6 +68,7 @@ describe("ScenarioCard", () => {
         isActive={false}
         onView={mockOnView}
         onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
       />
     );
 
@@ -78,6 +82,7 @@ describe("ScenarioCard", () => {
         isActive={false}
         onView={mockOnView}
         onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
       />
     );
 
@@ -92,6 +97,7 @@ describe("ScenarioCard", () => {
         isActive={false}
         onView={mockOnView}
         onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
       />
     );
 
@@ -106,6 +112,7 @@ describe("ScenarioCard", () => {
         isActive={false}
         onView={mockOnView}
         onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
       />
     );
 
@@ -123,6 +130,7 @@ describe("ScenarioCard", () => {
         isActive={false}
         onView={mockOnView}
         onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
       />
     );
 
@@ -140,6 +148,7 @@ describe("ScenarioCard", () => {
         isActive={false}
         onView={mockOnView}
         onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
       />
     );
 
@@ -166,6 +175,7 @@ describe("ScenarioCard", () => {
         isActive={false}
         onView={mockOnView}
         onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
       />
     );
 

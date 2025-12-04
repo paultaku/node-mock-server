@@ -110,8 +110,8 @@ describe('ScenarioApplicator', () => {
 
       expect(result.successes).toHaveLength(0);
       expect(result.failures).toHaveLength(2);
-      expect(result.failures[0].endpoint).toContain('/pet/status');
-      expect(result.failures[0].error).toContain('not found');
+      expect(result.failures[0]!.endpoint).toContain('/pet/status');
+      expect(result.failures[0]!.error).toContain('not found');
       expect(result.failures[1].endpoint).toContain('/user/login');
     });
 
@@ -150,7 +150,7 @@ describe('ScenarioApplicator', () => {
       expect(result.successes).toHaveLength(1);
       expect(result.failures).toHaveLength(1);
       expect(result.successes[0]).toContain('GET /pet/status');
-      expect(result.failures[0].endpoint).toContain('POST /user/login');
+      expect(result.failures[0]!.endpoint).toContain('POST /user/login');
     });
 
     it('should format status.json with 2-space indentation', async () => {
@@ -471,9 +471,9 @@ describe('ScenarioApplicator', () => {
 
       const result = await applicator.apply(scenario);
 
-      expect(result.failures[0].endpoint).toBe('GET /missing/endpoint');
-      expect(result.failures[0].error).toBeTruthy();
-      expect(result.failures[0].error.length).toBeGreaterThan(0);
+      expect(result.failures[0]!.endpoint).toBe('GET /missing/endpoint');
+      expect(result.failures[0]!.error).toBeTruthy();
+      expect(result.failures[0]!.error.length).toBeGreaterThan(0);
     });
   });
 

@@ -8,6 +8,7 @@ A TypeScript-based mock server with automatic Swagger-based mock file generation
 - **File-based Routing**: Serve mock responses based on file system structure
 - **Path Parameter Support**: Handle dynamic route parameters
 - **Multiple Response Types**: Support different HTTP status codes and response formats
+- **Scenario Management**: Create and manage test scenarios with predefined endpoint configurations
 - **CLI Tool**: Command-line interface for generating mock files
 - **TypeScript Support**: Full TypeScript implementation with type safety
 
@@ -46,6 +47,72 @@ console.log(mockRoot);
 
 startMockServer(8888, mockRoot);
 ```
+
+## Scenario Management
+
+The mock server includes a scenario management system that allows you to create and apply predefined endpoint configurations for different testing scenarios.
+
+### Creating Scenarios
+
+Scenarios can be created via the REST API:
+
+```bash
+# Create a new scenario
+curl -X POST http://localhost:8888/_mock/scenarios \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "error-scenario",
+    "endpointConfigurations": [
+      {
+        "path": "/pet/status",
+        "method": "GET",
+        "selectedMockFile": "error-500.json",
+        "delayMillisecond": 1000
+      }
+    ]
+  }'
+```
+
+### Managing Scenarios
+
+```bash
+# List all scenarios
+curl http://localhost:8888/_mock/scenarios
+
+# Get a specific scenario
+curl http://localhost:8888/_mock/scenarios/error-scenario
+
+# Get the active scenario
+curl http://localhost:8888/_mock/scenarios/active
+
+# Update a scenario
+curl -X PUT http://localhost:8888/_mock/scenarios/error-scenario \
+  -H "Content-Type: application/json" \
+  -d '{
+    "endpointConfigurations": [
+      {
+        "path": "/pet/status",
+        "method": "GET",
+        "selectedMockFile": "error-404.json",
+        "delayMillisecond": 500
+      }
+    ]
+  }'
+
+# Delete a scenario
+curl -X DELETE http://localhost:8888/_mock/scenarios/error-scenario
+```
+
+### Scenario Features
+
+- **Named Scenarios**: Organize different test configurations with descriptive names
+- **Endpoint Configurations**: Configure which mock file and delay to use for each endpoint
+- **Active Scenario Tracking**: Automatically tracks which scenario is currently active
+- **File Persistence**: Scenarios are saved as JSON files in the `mock/scenario/` directory
+- **Validation**: Prevents duplicate scenarios, empty scenarios, and duplicate endpoints within a scenario
+- **Delay Configuration**: Add response delays (0-60000ms) to simulate network latency
+
+For more details, see the [scenario management specification](specs/004-scenario-management/spec.md).
 
 ## License
 
