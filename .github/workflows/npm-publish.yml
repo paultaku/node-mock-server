@@ -36,12 +36,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
-          version: 10
+          node-version: 20
           registry-url: https://registry.npmjs.org/
-      - run: pnpm install
-      - run: pnpm build
 
       - name: Configure Git
         run: |
@@ -59,14 +57,9 @@ jobs:
             echo "VERSION_COMMAND=npm version prerelease --preid=rc --no-git-tag-version" >> $GITHUB_ENV
           fi
 
-      - name: Update Version and Publish
-        run: |
-          echo "Using version strategy: $VERSION_STRATEGY"
-          echo "Executing: $VERSION_COMMAND"
-          $VERSION_COMMAND
-          npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+      - uses: simenandre/publish-with-pnpm@v2
+        with:
+          npm-auth-token: ${{ secrets.NPM_TOKEN }}
 
       - name: Show Version Changes
         run: |
