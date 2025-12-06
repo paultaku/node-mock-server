@@ -37,22 +37,22 @@ jobs:
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
 
-      - name: Determine Version Strategy
-        id: version_strategy
-        run: |
-          if [[ "${{ github.ref }}" == "refs/heads/master" || "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "VERSION_STRATEGY=official" >> $GITHUB_ENV
-            echo "VERSION_COMMAND=npm version patch --no-git-tag-version" >> $GITHUB_ENV
-          else
-            echo "VERSION_STRATEGY=prerelease" >> $GITHUB_ENV
-            echo "VERSION_COMMAND=npm version prerelease --preid=rc --no-git-tag-version" >> $GITHUB_ENV
-          fi
-
       - uses: pnpm/action-setup@v4
         with:
           version: 10
       - name: Authenticate with npm
         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ./.npmrc
+
+      - name: Determine Version Strategy
+        id: version_strategy
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/master" || "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "VERSION_STRATEGY=official" >> $GITHUB_ENV
+            echo "VERSION_COMMAND=pnpm version patch --no-git-tag-version" >> $GITHUB_ENV
+          else
+            echo "VERSION_STRATEGY=prerelease" >> $GITHUB_ENV
+            echo "VERSION_COMMAND=[npm version prerelease --preid=rc --no-git-tag-version" >> $GITHUB_ENV
+          fi
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
