@@ -45,14 +45,12 @@ let mockStates = new Map<string, string>();
  * @param mockRoot - Root directory for mock files
  * @returns Express application
  */
-export function createApp(
-  mockRoot: string = DEFAULT_MOCK_ROOT
-): Application {
+export function createApp(mockRoot: string = DEFAULT_MOCK_ROOT): Application {
   const app = express();
 
   // Middleware
   app.use(express.json());
-  app.use(express.static(path.join(__dirname, "../../../public")));
+  app.use(express.static(path.join(__dirname, "./public")));
 
   // Load all status.json files when service starts
   (async () => {
@@ -129,7 +127,11 @@ export function createApp(
 
       // Check for duplicates
       const pathSegments = apiPath.substring(1).split("/");
-      const endpointDir = path.join(mockRoot, ...pathSegments, method.toUpperCase());
+      const endpointDir = path.join(
+        mockRoot,
+        ...pathSegments,
+        method.toUpperCase()
+      );
 
       if (await fileExists(endpointDir)) {
         return res.status(HTTP_STATUS.CONFLICT).json({
@@ -161,7 +163,10 @@ export function createApp(
           path: apiPath,
           method,
           filesCreated: result.filesCreated,
-          availableAt: `http://localhost:3000${apiPath.replace(/{[^}]+}/g, "123")}`,
+          availableAt: `http://localhost:3000${apiPath.replace(
+            /{[^}]+}/g,
+            "123"
+          )}`,
           mockDirectory: result.mockDirectory,
         },
       });
