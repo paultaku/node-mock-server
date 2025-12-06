@@ -1,0 +1,22 @@
+{
+  "name": "testing",
+  "endpointConfigurations": [
+    {
+      "path": "/pet",
+      "method": "POST",
+      "selectedMockFile": "successful-operation-200.json",
+      "delayMillisecond": 500
+    },
+    {
+      "path": "/pet/findByTags",
+      "method": "GET",
+      "selectedMockFile": "invalid-tag-value-400.json",
+      "delayMillisecond": 0
+    }
+  ],
+  "metadata": {
+    "createdAt": "2025-12-06T03:01:32.787Z",
+    "lastModified": "2025-12-06T05:48:49.548Z",
+    "version": 5
+  }
+}
