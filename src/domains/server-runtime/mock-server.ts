@@ -62,7 +62,7 @@ export function createApp(mockRoot: string = DEFAULT_MOCK_ROOT): Application {
 
   // Middleware
   app.use(express.json());
-  app.use(express.static(path.join(__dirname, "../../../public")));
+  app.use(express.static(path.join(__dirname, "./public")));
 
   // API endpoint: get all available endpoints
   app.get("/_mock/endpoints", async (req: Request, res: Response) => {

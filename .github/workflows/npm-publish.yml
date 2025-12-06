@@ -4,6 +4,12 @@
 name: Node.js Package
 
 on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: "Log level"
+        required: true
+        default: "warning"
   push:
     branches:
       - master
@@ -18,29 +24,13 @@ on:
       - main
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: npm ci
-      - run: npm run build
-
   publish-npm:
-    needs: build
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.ref, 'refs/heads/hotfix/') || startsWith(github.ref, 'refs/heads/release/'))
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          registry-url: https://registry.npmjs.org/
-      - run: npm ci
 
       - name: Configure Git
         run: |
@@ -58,14 +48,18 @@ jobs:
             echo "VERSION_COMMAND=npm version prerelease --preid=rc --no-git-tag-version" >> $GITHUB_ENV
           fi
 
-      - name: Update Version and Publish
-        run: |
-          echo "Using version strategy: $VERSION_STRATEGY"
-          echo "Executing: $VERSION_COMMAND"
-          $VERSION_COMMAND
-          npm publish
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: Authenticate with npm
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ./.npmrc
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Publish package
+        run: pnpm publish --no-git-checks --access public
         env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Show Version Changes
         run: |
