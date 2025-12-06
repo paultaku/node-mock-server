@@ -11,7 +11,10 @@
       "Bash(fi)",
       "Bash(git rev-parse:*)",
       "Bash(npm test:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx tsc:*)",
+      "Bash(bash:*)"
     ],
     "deny": [],
     "ask": []

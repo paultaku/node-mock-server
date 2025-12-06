@@ -35,6 +35,7 @@ export const ScenarioManagementPage: React.FC = () => {
     deleteScenario,
     removeEndpointConfig,
     fetchEndpoints,
+    setActiveScenario,
   } = useScenarios();
 
   const handleDelete = async (name: string) => {
@@ -64,10 +65,10 @@ export const ScenarioManagementPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">
+          <div className="w-12 h-12 mx-auto mb-4 border-b-2 rounded-full animate-spin border-primary-600"></div>
+          <h2 className="mb-2 text-xl font-semibold text-gray-700">
             Loading...
           </h2>
           <p className="text-gray-500">Fetching scenarios</p>
@@ -78,10 +79,10 @@ export const ScenarioManagementPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto max-w-7xl">
         {/* Header */}
-        <div className="bg-gradient-to-r from-primary-600 to-primary-800 text-white rounded-xl p-8 mb-8 text-center">
-          <h1 className="text-4xl font-bold mb-4">Scenario Management</h1>
+        <div className="p-8 mb-8 text-center text-white bg-gradient-to-r from-primary-600 to-primary-800 rounded-xl">
+          <h1 className="mb-4 text-4xl font-bold">Scenario Management</h1>
           <p className="text-xl opacity-90">
             View and manage your test scenarios
           </p>
@@ -89,11 +90,11 @@ export const ScenarioManagementPage: React.FC = () => {
 
         {/* Messages */}
         {error && (
-          <div className="bg-error-50 border-l-4 border-error-400 p-4 mb-6 rounded-md">
+          <div className="p-4 mb-6 border-l-4 rounded-md bg-error-50 border-error-400">
             <div className="flex">
               <div className="flex-shrink-0">
                 <svg
-                  className="h-5 w-5 text-error-400"
+                  className="w-5 h-5 text-error-400"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -112,11 +113,11 @@ export const ScenarioManagementPage: React.FC = () => {
         )}
 
         {message && (
-          <div className="bg-success-50 border-l-4 border-success-400 p-4 mb-6 rounded-md">
+          <div className="p-4 mb-6 border-l-4 rounded-md bg-success-50 border-success-400">
             <div className="flex">
               <div className="flex-shrink-0">
                 <svg
-                  className="h-5 w-5 text-success-400"
+                  className="w-5 h-5 text-success-400"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -140,7 +141,7 @@ export const ScenarioManagementPage: React.FC = () => {
             <h2 className="text-2xl font-bold text-gray-900">Scenarios</h2>
             <button
               onClick={() => setIsCreating(true)}
-              className="bg-primary-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
+              className="px-6 py-3 font-medium text-white transition-colors rounded-lg bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
             >
               Create Scenario
             </button>
@@ -163,18 +164,11 @@ export const ScenarioManagementPage: React.FC = () => {
               clearSelectedScenario();
             }}
             onModeChange={setFormMode}
-            onRemoveEndpoint={async (path, method) => {
-              if (selectedScenario) {
-                await removeEndpointConfig(selectedScenario.name, path, method);
-                // Refresh selected scenario
-                await selectScenario(selectedScenario.name);
-              }
-            }}
+            availableEndpoints={availableEndpoints}
           />
         ) : (
           <ScenarioList
             scenarios={scenarios}
-            activeScenario={activeScenario}
             onView={async (name) => {
               await selectScenario(name);
               setFormMode("view");
@@ -184,17 +178,20 @@ export const ScenarioManagementPage: React.FC = () => {
               setFormMode("edit");
             }}
             onDelete={handleDelete}
+            onActivate={async (name) => {
+              await setActiveScenario(name);
+            }}
           />
         )}
 
         {/* Delete Confirmation Dialog */}
         {deleteConfirmation?.show && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="w-full max-w-md p-6 mx-4 bg-white rounded-lg shadow-xl">
               <div className="flex items-center mb-4">
-                <div className="flex-shrink-0 bg-red-100 rounded-full p-3 mr-4">
+                <div className="flex-shrink-0 p-3 mr-4 bg-red-100 rounded-full">
                   <svg
-                    className="h-6 w-6 text-red-600"
+                    className="w-6 h-6 text-red-600"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -213,21 +210,21 @@ export const ScenarioManagementPage: React.FC = () => {
                   </h3>
                 </div>
               </div>
-              <p className="text-gray-600 mb-6">
+              <p className="mb-6 text-gray-600">
                 Are you sure you want to delete the scenario "
                 <strong>{deleteConfirmation.scenarioName}</strong>"? This action
                 cannot be undone.
               </p>
-              <div className="flex gap-3 justify-end">
+              <div className="flex justify-end gap-3">
                 <button
                   onClick={cancelDelete}
-                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors"
+                  className="px-4 py-2 text-gray-800 transition-colors bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmDelete}
-                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
+                  className="px-4 py-2 text-white transition-colors bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
                 >
                   Delete
                 </button>

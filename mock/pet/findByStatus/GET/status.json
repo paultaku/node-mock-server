@@ -1,3 +1,4 @@
 {
-  "selected": "invalid-status-value-400.json"
+  "selected": "successful-operation-200.json",
+  "delayMillisecond": 0
 }

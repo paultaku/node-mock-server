@@ -17,8 +17,6 @@ import {
   readStatusJson,
   writeStatusJson,
   getStatusJsonPath,
-  loadAllStatusJson,
-  getMockStateKey,
   StatusJson,
 } from "./status-tracker";
 import {
@@ -54,29 +52,17 @@ import {
 const DEFAULT_MOCK_ROOT = path.resolve(__dirname, "../../../mock");
 const DEFAULT_MOCK_FILE = "successful-operation-200.json";
 
-// Store the mock response state of each endpoint
-let mockStates = new Map<string, string>();
-
 /**
  * Create Express application with mock server middleware
  * @param mockRoot - Root directory for mock files
  * @returns Express application
  */
-export function createApp(
-  mockRoot: string = DEFAULT_MOCK_ROOT
-): Application {
+export function createApp(mockRoot: string = DEFAULT_MOCK_ROOT): Application {
   const app = express();
 
   // Middleware
   app.use(express.json());
   app.use(express.static(path.join(__dirname, "../../../public")));
-
-  // Load all status.json files when service starts
-  (async () => {
-    const templates = await getAllMockTemplates(mockRoot);
-    mockStates = await loadAllStatusJson(mockRoot, templates);
-    console.log("[status-manager] All status.json files loaded");
-  })();
 
   // API endpoint: get all available endpoints
   app.get("/_mock/endpoints", async (req: Request, res: Response) => {
@@ -90,16 +76,20 @@ export function createApp(
         const method = template[template.length - 1] || "";
         const pathParts = template.slice(0, -1);
         const apiPath = "/" + pathParts.join("/");
-        const stateKey = getMockStateKey(apiPath, method);
-        const currentMock = mockStates.get(stateKey) || DEFAULT_MOCK_FILE;
 
-        // Read status.json to get delayMillisecond
+        // Read status.json to get currentMock and delayMillisecond
         const statusPath = getStatusJsonPath(mockRoot, apiPath, method);
+        let currentMock = DEFAULT_MOCK_FILE;
         let delayMillisecond = undefined;
         try {
           const status = await readStatusJson(statusPath);
-          if (status && typeof status.delayMillisecond === "number") {
-            delayMillisecond = status.delayMillisecond;
+          if (status) {
+            if (status.selected) {
+              currentMock = status.selected;
+            }
+            if (typeof status.delayMillisecond === "number") {
+              delayMillisecond = status.delayMillisecond;
+            }
           }
         } catch {}
 
@@ -146,7 +136,11 @@ export function createApp(
 
       // Check for duplicates
       const pathSegments = apiPath.substring(1).split("/");
-      const endpointDir = path.join(mockRoot, ...pathSegments, method.toUpperCase());
+      const endpointDir = path.join(
+        mockRoot,
+        ...pathSegments,
+        method.toUpperCase()
+      );
 
       if (await fileExists(endpointDir)) {
         return res.status(HTTP_STATUS.CONFLICT).json({
@@ -166,10 +160,6 @@ export function createApp(
         method,
       });
 
-      // Update in-memory state
-      const stateKey = getMockStateKey(apiPath, method);
-      mockStates.set(stateKey, "success-200.json");
-
       // Return success
       return res.status(HTTP_STATUS.CREATED).json({
         success: true,
@@ -178,7 +168,10 @@ export function createApp(
           path: apiPath,
           method,
           filesCreated: result.filesCreated,
-          availableAt: `http://localhost:3000${apiPath.replace(/{[^}]+}/g, "123")}`,
+          availableAt: `http://localhost:3000${apiPath.replace(
+            /{[^}]+}/g,
+            "123"
+          )}`,
           mockDirectory: result.mockDirectory,
         },
       });
@@ -222,8 +215,6 @@ export function createApp(
         }
 
         status.selected = mockFile;
-        const stateKey = getMockStateKey(apiPath, method);
-        mockStates.set(stateKey, mockFile);
       }
 
       // Update delay if provided
@@ -272,13 +263,11 @@ export function createApp(
 
       const statusPath = getStatusJsonPath(mockRoot, apiPath, method);
       const status = await readStatusJson(statusPath);
-      const stateKey = getMockStateKey(apiPath, method);
-      const currentMock = mockStates.get(stateKey) || DEFAULT_MOCK_FILE;
 
       return res.json({
         path: apiPath,
         method: method,
-        currentMock: status?.selected || currentMock,
+        currentMock: status?.selected || DEFAULT_MOCK_FILE,
         delayMillisecond: status?.delayMillisecond || 0,
       });
     } catch (error) {
@@ -365,7 +354,7 @@ export function createApp(
 
       return res.status(HTTP_STATUS.CREATED).json({
         scenario,
-        message: `Scenario '${scenario.name}' created and activated successfully`,
+        message: `Scenario '${scenario.name}' created successfully`,
       });
     } catch (error) {
       if (error instanceof DuplicateScenarioError) {
@@ -426,6 +415,48 @@ export function createApp(
       });
     }
   });
+
+  // API endpoint: apply scenario (update status.json files)
+  app.put(
+    "/_mock/scenarios/:name/activate",
+    async (req: Request, res: Response) => {
+      try {
+        const { name } = req.params;
+
+        if (!name) {
+          return res.status(HTTP_STATUS.BAD_REQUEST).json({
+            error: "Scenario name is required",
+          });
+        }
+
+        // Verify scenario exists
+        const scenarioExists = await scenarioRepository.exists(name);
+        if (!scenarioExists) {
+          return res.status(404).json({
+            error: `Scenario "${name}" not found`,
+          });
+        }
+
+        // Get the scenario and apply it (updates status.json files only)
+        const scenario = await scenarioManager.get(name);
+        const applicationResult = await scenarioApplicator.apply(scenario);
+
+        // Set the scenario as active
+        await activeScenarioTracker.setActive(name);
+
+        return res.json({
+          success: true,
+          message: `Scenario "${name}" applied successfully. Status.json files updated.`,
+          applicationResult,
+        });
+      } catch (error) {
+        return res.status(HTTP_STATUS.INTERNAL_ERROR).json({
+          error: "Failed to apply scenario",
+          detail: String(error),
+        });
+      }
+    }
+  );
 
   // API endpoint: get scenario by name
   app.get("/_mock/scenarios/:name", async (req: Request, res: Response) => {
@@ -571,27 +602,17 @@ export function createApp(
         apiPath = "/" + requestParts.join("/");
       }
 
-      // Select mock response file
-      const stateKey = getMockStateKey(apiPath, method);
-      let mockFile = mockStates.get(stateKey);
-      if (!mockFile) {
-        // fallback: read status.json or default
-        const statusPath = getStatusJsonPath(mockRoot, apiPath, method);
-        const status = await readStatusJson(statusPath);
-        if (status && status.selected) {
-          mockFile = status.selected;
-          mockStates.set(stateKey, mockFile);
-          console.log(
-            `[status-manager] fallback read ${statusPath} -> ${mockFile}`
-          );
-        } else {
-          mockFile = DEFAULT_MOCK_FILE;
-          mockStates.set(stateKey, mockFile);
-          console.log(
-            `[status-manager] fallback default ${stateKey} -> ${mockFile}`
-          );
-        }
+      // Read mock response file from status.json
+      const statusPath = getStatusJsonPath(mockRoot, apiPath, method);
+      const status = await readStatusJson(statusPath);
+
+      let mockFile: string;
+      if (status && status.selected) {
+        mockFile = status.selected;
+      } else {
+        mockFile = DEFAULT_MOCK_FILE;
       }
+
       const filePath = path.join(endpointDir, mockFile);
 
       if (!(await mockFileExists(filePath))) {
@@ -619,9 +640,7 @@ export function createApp(
         res.status(statusCode);
       }
 
-      // Read status.json to get delayMillisecond
-      const statusPath = getStatusJsonPath(mockRoot, apiPath, method);
-      const status = await readStatusJson(statusPath);
+      // Get delayMillisecond from status (already read above)
       let delayMillisecond = 0;
       if (status) {
         if (

@@ -173,4 +173,31 @@ export const scenarioApi = {
     }
     return response.json();
   },
+
+  /**
+   * Set a scenario as active
+   * @param name - Scenario name to activate
+   * @returns Success response with active scenario name
+   */
+  async setActiveScenario(name: string): Promise<{
+    success: boolean;
+    message: string;
+    activeScenario: string;
+  }> {
+    const response = await fetch(
+      `${MOCK_API_BASE}/scenarios/${encodeURIComponent(name)}/activate`,
+      {
+        method: "PUT",
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({
+        error: `HTTP error! status: ${response.status}`,
+      }));
+      throw new Error(error.error || `Failed to set active scenario`);
+    }
+
+    return response.json();
+  },
 };

@@ -47,8 +47,8 @@ export class ScenarioManager {
    * 1. Validate request (empty, duplicates)
    * 2. Generate metadata
    * 3. Save to repository
-   * 4. Apply to endpoints
-   * 5. Set as active
+   *
+   * Note: Scenario is NOT automatically applied. Use activate endpoint to apply.
    *
    * @throws DuplicateScenarioError if scenario name already exists
    * @throws EmptyScenarioError if no endpoint configurations
@@ -78,12 +78,6 @@ export class ScenarioManager {
     // Save to repository (throws DuplicateScenarioError if exists)
     await this.repository.save(scenario);
 
-    // Apply scenario to endpoints
-    await this.applicator.apply(scenario);
-
-    // Set as active
-    await this.tracker.setActive(scenario.name);
-
     return scenario;
   }
 
@@ -95,8 +89,8 @@ export class ScenarioManager {
    * 2. Load existing scenario
    * 3. Update endpoint configurations and metadata
    * 4. Save to repository
-   * 5. Apply to endpoints
-   * 6. Set as active
+   *
+   * Note: Scenario is NOT automatically applied. Use activate endpoint to apply.
    *
    * @throws ScenarioNotFoundError if scenario doesn't exist
    * @throws EmptyScenarioError if no endpoint configurations
@@ -130,12 +124,6 @@ export class ScenarioManager {
 
     // Save to repository
     await this.repository.update(updated);
-
-    // Apply updated scenario to endpoints
-    await this.applicator.apply(updated);
-
-    // Set as active
-    await this.tracker.setActive(updated.name);
 
     return updated;
   }

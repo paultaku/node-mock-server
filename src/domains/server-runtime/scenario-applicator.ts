@@ -8,13 +8,13 @@
  * @see tests/unit/scenario-applicator.test.ts
  */
 
-import * as fs from 'fs-extra';
-import * as path from 'path';
+import * as fs from "fs-extra";
+import * as path from "path";
 import {
   Scenario,
   EndpointConfiguration,
-  ScenarioApplicationResult
-} from '../../shared/types/scenario-types';
+  ScenarioApplicationResult,
+} from "../../shared/types/scenario-types";
 
 /**
  * Status file structure for endpoints
@@ -41,7 +41,7 @@ export class ScenarioApplicator {
   /**
    * @param mockRoot Absolute path to mock directory root (default: mock/)
    */
-  constructor(mockRoot: string = path.join(process.cwd(), 'mock')) {
+  constructor(mockRoot: string = path.join(process.cwd(), "mock")) {
     this.mockRoot = mockRoot;
   }
 
@@ -63,11 +63,19 @@ export class ScenarioApplicator {
       scenario.endpointConfigurations.map(async (config) => {
         try {
           await this.applyEndpoint(config);
-          successes.push(`${config.method} ${config.path}`);
+          const methodStr =
+            typeof config.method === "string"
+              ? config.method
+              : String(config.method);
+          successes.push(`${methodStr} ${config.path}`);
         } catch (error) {
+          const methodStr =
+            typeof config.method === "string"
+              ? config.method
+              : String(config.method);
           failures.push({
-            endpoint: `${config.method} ${config.path}`,
-            error: error instanceof Error ? error.message : String(error)
+            endpoint: `${methodStr} ${config.path}`,
+            error: error instanceof Error ? error.message : String(error),
           });
         }
       })
@@ -90,15 +98,19 @@ export class ScenarioApplicator {
     // Verify endpoint directory exists
     const endpointDir = path.dirname(statusFilePath);
     if (!(await fs.pathExists(endpointDir))) {
+      const methodStr =
+        typeof config.method === "string"
+          ? config.method
+          : String(config.method);
       throw new Error(
-        `Endpoint directory not found: ${config.method} ${config.path}`
+        `Endpoint directory not found: ${methodStr} ${config.path}`
       );
     }
 
     // Create status object
     const status: EndpointStatus = {
       selected: config.selectedMockFile,
-      delayMillisecond: config.delayMillisecond
+      delayMillisecond: config.delayMillisecond,
     };
 
     // Write status file with formatted JSON
@@ -115,16 +127,22 @@ export class ScenarioApplicator {
    */
   private getStatusFilePath(config: EndpointConfiguration): string {
     // Remove leading slash from path
-    const pathWithoutLeadingSlash = config.path.startsWith('/')
+    const pathWithoutLeadingSlash = config.path.startsWith("/")
       ? config.path.substring(1)
       : config.path;
+
+    // Ensure method is uppercase string (handle enum values)
+    const method =
+      typeof config.method === "string"
+        ? config.method.toUpperCase()
+        : String(config.method).toUpperCase();
 
     // Build path: mock/{path}/{METHOD}/status.json
     return path.join(
       this.mockRoot,
       pathWithoutLeadingSlash,
-      config.method,
-      'status.json'
+      method,
+      "status.json"
     );
   }
 }

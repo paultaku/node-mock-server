@@ -4,10 +4,10 @@ import { ScenarioCard } from "./ScenarioCard";
 
 interface ScenarioListProps {
   scenarios: Scenario[];
-  activeScenario: string | null;
   onView: (name: string) => void;
   onEdit: (name: string) => void;
   onDelete: (name: string) => void;
+  onActivate: (name: string) => void;
 }
 
 /**
@@ -20,10 +20,10 @@ interface ScenarioListProps {
  */
 export const ScenarioList: React.FC<ScenarioListProps> = ({
   scenarios,
-  activeScenario,
   onView,
   onEdit,
   onDelete,
+  onActivate,
 }) => {
   if (scenarios.length === 0) {
     return (
@@ -59,10 +59,10 @@ export const ScenarioList: React.FC<ScenarioListProps> = ({
         <ScenarioCard
           key={scenario.name}
           scenario={scenario}
-          isActive={scenario.name === activeScenario}
           onView={onView}
           onEdit={onEdit}
           onDelete={onDelete}
+          onActivate={onActivate}
         />
       ))}
     </div>

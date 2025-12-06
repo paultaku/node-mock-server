@@ -43,11 +43,12 @@ export interface UseScenariosReturn {
     path: string,
     method: HttpMethod
   ) => Promise<void>;
+  setActiveScenario: (name: string) => Promise<void>;
 }
 
 export const useScenarios = (): UseScenariosReturn => {
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
-  const [activeScenario, setActiveScenario] = useState<string | null>(null);
+  const [activeScenario, setActiveScenarioState] = useState<string | null>(null);
   const [selectedScenario, setSelectedScenario] = useState<Scenario | null>(
     null
   );
@@ -65,7 +66,7 @@ export const useScenarios = (): UseScenariosReturn => {
       setError(null);
       const data = await scenarioApi.fetchScenarios();
       setScenarios(data.scenarios);
-      setActiveScenario(data.activeScenario);
+      setActiveScenarioState(data.activeScenario);
     } catch (err) {
       setError(
         `Failed to fetch scenarios: ${
@@ -267,6 +268,41 @@ export const useScenarios = (): UseScenariosReturn => {
     [updateScenario, selectedScenario]
   );
 
+  /**
+   * Set a scenario as active
+   */
+  const setActiveScenario = useCallback(
+    async (name: string) => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await scenarioApi.setActiveScenario(name);
+        setMessage(
+          response.message || `Scenario '${name}' is now active`
+        );
+
+        // Update active scenario state
+        setActiveScenarioState(name);
+
+        // Refresh scenarios list to update UI
+        await fetchScenarios();
+
+        setTimeout(() => setMessage(null), 3000);
+      } catch (err) {
+        setError(
+          `Failed to set active scenario: ${
+            err instanceof Error ? err.message : "Unknown error"
+          }`
+        );
+        setTimeout(() => setError(null), 5000);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [fetchScenarios]
+  );
+
   // Fetch scenarios and endpoints on mount
   useEffect(() => {
     fetchScenarios();
@@ -292,5 +328,6 @@ export const useScenarios = (): UseScenariosReturn => {
     clearSelectedScenario,
     fetchEndpoints,
     removeEndpointConfig,
+    setActiveScenario,
   };
 };

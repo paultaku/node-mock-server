@@ -557,6 +557,96 @@ describe("Scenario API Contract Tests", () => {
     });
   });
 
+  describe("PUT /_mock/scenarios/:name/activate", () => {
+    it("should set a scenario as active", async () => {
+      // Create a scenario
+      const createRequest = {
+        name: "activate-test",
+        endpointConfigurations: [
+          {
+            path: "/pet/status",
+            method: "GET",
+            selectedMockFile: "success-200.json",
+            delayMillisecond: 0,
+          },
+        ],
+      };
+
+      await request(app)
+        .post("/_mock/scenarios")
+        .send(createRequest)
+        .expect(201);
+
+      // Activate the scenario
+      const response = await request(app)
+        .put("/_mock/scenarios/activate-test/activate")
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.activeScenario).toBe("activate-test");
+      expect(response.body.message).toContain("activate-test");
+
+      // Verify it's active via GET /active endpoint
+      const activeResponse = await request(app)
+        .get("/_mock/scenarios/active")
+        .expect(200);
+      expect(activeResponse.body.activeScenario).toBe("activate-test");
+    });
+
+    it("should return 404 for non-existent scenario", async () => {
+      const response = await request(app)
+        .put("/_mock/scenarios/nonexistent/activate")
+        .expect(404);
+
+      expect(response.body.error).toContain("not found");
+    });
+
+    it("should switch active scenario when activating a different one", async () => {
+      // Create first scenario
+      await request(app)
+        .post("/_mock/scenarios")
+        .send({
+          name: "scenario-1",
+          endpointConfigurations: [
+            {
+              path: "/pet/status",
+              method: "GET",
+              selectedMockFile: "success-200.json",
+              delayMillisecond: 0,
+            },
+          ],
+        })
+        .expect(201);
+
+      // Create second scenario
+      await request(app)
+        .post("/_mock/scenarios")
+        .send({
+          name: "scenario-2",
+          endpointConfigurations: [
+            {
+              path: "/pet/status",
+              method: "GET",
+              selectedMockFile: "error-404.json",
+              delayMillisecond: 100,
+            },
+          ],
+        })
+        .expect(201);
+
+      // Activate second scenario
+      await request(app)
+        .put("/_mock/scenarios/scenario-2/activate")
+        .expect(200);
+
+      // Verify scenario-2 is active
+      const activeResponse = await request(app)
+        .get("/_mock/scenarios/active")
+        .expect(200);
+      expect(activeResponse.body.activeScenario).toBe("scenario-2");
+    });
+  });
+
   describe("GET /_mock/endpoints", () => {
     it("should return list of all available endpoints", async () => {
       // Create a mock file for the existing endpoint
