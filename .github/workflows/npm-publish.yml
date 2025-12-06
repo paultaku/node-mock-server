@@ -48,10 +48,10 @@ jobs:
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/master" || "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "VERSION_STRATEGY=official" >> $GITHUB_ENV
-            echo "VERSION_COMMAND=pnpm version ${{ inputs.version }} --no-git-tag-version" >> $GITHUB_ENV
+            echo "VERSION_COMMAND=pnpm version ${VERSION:-${{ inputs.version }}} --no-git-tag-version" >> $GITHUB_ENV
           else
             echo "VERSION_STRATEGY=prerelease" >> $GITHUB_ENV
-            echo "VERSION_COMMAND=pnpm version ${{ inputs.version }} --preid=rc --no-git-tag-version" >> $GITHUB_ENV
+            echo "VERSION_COMMAND=pnpm version ${VERSION:-${{ inputs.version }}} --preid=rc --no-git-tag-version" >> $GITHUB_ENV
           fi
 
       - name: Install dependencies
