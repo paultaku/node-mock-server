@@ -6,10 +6,10 @@ name: Node.js Package
 on:
   workflow_dispatch:
     inputs:
-      logLevel:
-        description: "Log level"
+      version:
+        description: "Version"
         required: true
-        default: "warning"
+        default: "1.2.1"
   push:
     branches:
       - master
@@ -48,10 +48,10 @@ jobs:
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/master" || "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "VERSION_STRATEGY=official" >> $GITHUB_ENV
-            echo "VERSION_COMMAND=pnpm version patch --no-git-tag-version" >> $GITHUB_ENV
-          else
+            echo "VERSION_COMMAND=pnpm version ${{ inputs.version }} --no-git-tag-version" >> $GITHUB_ENV
             echo "VERSION_STRATEGY=prerelease" >> $GITHUB_ENV
-            echo "VERSION_COMMAND=[npm version prerelease --preid=rc --no-git-tag-version" >> $GITHUB_ENV
+            echo "VERSION_COMMAND=pnpm version ${{ inputs.version }} --preid=rc --no-git-tag-version" >> $GITHUB_ENV
+          else
           fi
 
       - name: Install dependencies
