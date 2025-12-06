@@ -30,7 +30,11 @@ module.exports = {
     {
       displayName: "backend",
       testEnvironment: "node",
-      testMatch: ["**/tests/unit/**/*.test.ts", "**/tests/integration/**/*.test.ts"],
+      testMatch: [
+        "**/tests/unit/**/*.test.ts",
+        "**/tests/integration/**/*.test.ts",
+        "**/tests/contract/**/*.test.ts",
+      ],
       transform: {
         "^.+\\.ts$": "ts-jest",
       },
