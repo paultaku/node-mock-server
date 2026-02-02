@@ -64,6 +64,11 @@ export function createApp(mockRoot: string = DEFAULT_MOCK_ROOT): Application {
   app.use(express.json());
   app.use(express.static(path.join(__dirname, "./public")));
 
+  // Health check endpoint
+  app.get("/health", (req: Request, res: Response) => {
+    res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
   // API endpoint: get all available endpoints
   app.get("/_mock/endpoints", async (req: Request, res: Response) => {
     try {
